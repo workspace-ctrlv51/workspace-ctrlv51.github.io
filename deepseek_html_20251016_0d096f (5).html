@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Quest Life</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f0f12;
+            --bg-secondary: #1a1a1f;
+            --glass-white: rgba(255, 255, 255, 0.03);
+            --glass-light: rgba(255, 255, 255, 0.05);
+            --glass-medium: rgba(255, 255, 255, 0.08);
+            --border-glass: rgba(255, 255, 255, 0.06);
+            --text-primary: rgba(255, 255, 255, 0.85);
+            --text-secondary: rgba(255, 255, 255, 0.55);
+            --text-tertiary: rgba(255, 255, 255, 0.35);
+            --accent-muted: rgba(139, 92, 246, 0.15);
+            --accent-soft: rgba(139, 92, 246, 0.25);
+            --success-muted: rgba(74, 222, 128, 0.15);
+            --success-soft: rgba(74, 222, 128, 0.25);
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        *::-webkit-scrollbar { display: none; }
+        * { 
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* Subtle liquid glass background */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: linear-gradient(180deg, #0f0f12 0%, #141418 100%);
+        }
+
+        .glass-orbs {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            opacity: 0.4;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+        }
+
+        .orb-1 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent);
+            top: -150px;
+            left: -100px;
+            animation: float-slow 30s infinite ease-in-out;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1), transparent);
+            bottom: -100px;
+            right: -100px;
+            animation: float-slow 25s infinite ease-in-out reverse;
+        }
+
+        @keyframes float-slow {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+        }
+
+        /* Main layout */
+        .app {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 1;
+        }
+
+        /* Compact header */
+        .header {
+            padding: calc(var(--safe-top) + 12px) 16px 12px;
+        }
+
+        .header-card {
+            background: var(--glass-white);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--border-glass);
+            padding: 16px;
+        }
+
+        .app-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+            margin-bottom: 8px;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 24px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            text-transform: lowercase;
+        }
+
+        /* Tab bar */
+        .tabs {
+            padding: 8px 16px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex-shrink: 0;
+            padding: 10px 20px;
+            background: var(--glass-white);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            background: var(--glass-medium);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tasks-container {
+            height: 100%;
+            overflow-y: auto;
+            padding: 8px 16px 90px;
+        }
+
+        /* Task cards */
+        .task {
+            background: var(--glass-white);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            transform: translateX(0);
+        }
+
+        .task.completed {
+            opacity: 0.4;
+        }
+
+        .task-body {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .task-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            background: var(--glass-white);
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .task-check.checked {
+            background: var(--success-muted);
+            border-color: var(--success-soft);
+        }
+
+        .task-check.checked::after {
+            content: '✓';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+
+        .task-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .task-desc {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .task-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .task-tag {
+            padding: 3px 8px;
+            background: var(--accent-muted);
+            border-radius: 100px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Progress bar */
+        .task-progress {
+            margin-top: 10px;
+            height: 4px;
+            background: var(--glass-light);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .task-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-soft), var(--success-soft));
+            border-radius: 100px;
+            transition: width 0.5s ease;
+        }
+
+        /* Empty state */
+        .empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            font-size: 13px;
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: calc(68px + var(--safe-bottom));
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            background: var(--glass-medium);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--text-secondary);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+        }
+
+        /* Bottom navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--glass-white);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-glass);
+            padding: 8px 0 calc(8px + var(--safe-bottom));
+            z-index: 90;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            padding: 8px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: var(--text-primary);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 200;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-sheet {
+            width: 100%;
+            background: var(--bg-secondary);
+            border-radius: 24px 24px 0 0;
+            padding: 24px 20px calc(24px + var(--safe-bottom));
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal.show .modal-sheet {
+            transform: translateY(0);
+        }
+
+        .modal-handle {
+            width: 36px;
+            height: 4px;
+            background: var(--glass-medium);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--glass-white);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            background: var(--glass-light);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .skill-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .skill-opt {
+            padding: 12px;
+            background: var(--glass-white);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .skill-opt.selected {
+            background: var(--accent-muted);
+            border-color: var(--accent-soft);
+        }
+
+        .skill-opt-icon {
+            font-size: 20px;
+        }
+
+        .skill-opt-name {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        
+        .add-skill-btn {
+            padding: 12px;
+            background: var(--glass-light);
+            border: 1px dashed var(--border-glass);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .add-skill-btn:active {
+            transform: scale(0.97);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel {
+            background: var(--glass-white);
+            color: var(--text-secondary);
+        }
+
+        .btn-save {
+            background: var(--glass-medium);
+            color: var(--text-primary);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Notification */
+        .toast {
+            position: fixed;
+            top: calc(var(--safe-top) + 16px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--glass-medium);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 13px;
+            color: var(--text-primary);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            z-index: 300;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Skills view */
+        .skills-view {
+            padding: 8px 16px 90px;
+            display: none;
+        }
+
+        .skills-view.active {
+            display: block;
+        }
+
+        .skill-card {
+            background: var(--glass-white);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .skill-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .skill-icon-large {
+            font-size: 36px;
+        }
+
+        .skill-info {
+            flex: 1;
+        }
+
+        .skill-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .skill-level {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .skill-progress {
+            height: 6px;
+            background: var(--glass-light);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .skill-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-soft), var(--success-soft));
+            border-radius: 100px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-layer">
+        <div class="glass-orbs">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+        </div>
+    </div>
+
+    <!-- App -->
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-card">
+                <div class="app-name">QUEST LIFE</div>
+                <div class="stats-row">
+                    <div class="stat">
+                        <div class="stat-value" id="statCompleted">0</div>
+                        <div class="stat-label">выполнено</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="statStreak">0</div>
+                        <div class="stat-label">дней</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="statLevel">0</div>
+                        <div class="stat-label">уровень</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-cat="near">Быстрые</div>
+            <div class="tab" data-cat="medium">Средние</div>
+            <div class="tab" data-cat="big">Большие</div>
+            <div class="tab" data-cat="boss">Боссы</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="tasks-container" id="tasksContainer"></div>
+            <div class="skills-view" id="skillsView"></div>
+        </div>
+    </div>
+
+    <!-- FAB -->
+    <button class="fab" onclick="openModal()">+</button>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-items">
+            <div class="nav-item active" data-view="tasks">
+                <div class="nav-icon">📝</div>
+                <div class="nav-label">Задачи</div>
+            </div>
+            <div class="nav-item" data-view="skills">
+                <div class="nav-icon">⚡</div>
+                <div class="nav-label">Навыки</div>
+            </div>
+            <div class="nav-item" data-view="stats">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">Статистика</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Новая задача</div>
+            
+            <div class="form-group">
+                <label class="form-label">Название</label>
+                <input type="text" class="form-input" id="inputTitle" placeholder="Что нужно сделать?">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Описание</label>
+                <input type="text" class="form-input" id="inputDesc" placeholder="Детали (необязательно)">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Навык</label>
+                <div class="skill-options" id="skillOptions"></div>
+                <div class="add-skill-btn" onclick="openSkillModal()">+ Добавить навык</div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-save" onclick="saveTask()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Skill Modal -->
+    <div class="modal" id="skillModal">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Новый навык</div>
+            
+            <div class="form-group">
+                <label class="form-label">Эмоджи</label>
+                <input type="text" class="form-input" id="skillEmoji" placeholder="🎯" maxlength="2" style="text-align: center; font-size: 24px;">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Название навыка</label>
+                <input type="text" class="form-input" id="skillName" placeholder="Например: Чтение книг">
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeSkillModal()">Отмена</button>
+                <button class="btn btn-save" onclick="saveSkill()">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+    // ПРОСТОЙ И РАБОЧИЙ КОД - как в той версии
+    let currentCategory = 'near';
+    let selectedSkill = null;
+
+    let tasks = {
+        near: [],
+        medium: [],
+        big: [],
+        boss: []
+    };
+
+    let stats = {
+        completed: 0,
+        streak: 0,
+        skills: {}
+    };
+
+    let skills = {
+        piano: { name: 'Игра на пианино', icon: '🎹' }
+    };
+
+    // Загрузка при старте
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        renderTasks();
+        renderSkills();
+        updateStats();
+        initTabs();
+        initNav();
+    });
+
+    // ТАБЫ
+    function initTabs() {
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentCategory = tab.dataset.cat;
+                renderTasks();
+            });
+        });
+    }
+
+    // НАВИГАЦИЯ
+    function initNav() {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                
+                const view = item.dataset.view;
+                if (view === 'skills') {
+                    document.getElementById('tasksContainer').style.display = 'none';
+                    document.querySelector('.tabs').style.display = 'none';
+                    document.getElementById('skillsView').classList.add('active');
+                    updateSkillsView();
+                } else {
+                    document.getElementById('tasksContainer').style.display = 'block';
+                    document.querySelector('.tabs').style.display = 'flex';
+                    document.getElementById('skillsView').classList.remove('active');
+                }
+            });
+        });
+    }
+
+    // НАВЫКИ В МОДАЛКЕ
+    function renderSkills() {
+        const container = document.getElementById('skillOptions');
+        container.innerHTML = Object.entries(skills).map(([id, skill]) => `
+            <div class="skill-opt" data-skill="${id}" onclick="selectSkill('${id}')">
+                <div class="skill-opt-icon">${skill.icon}</div>
+                <div class="skill-opt-name">${skill.name}</div>
+            </div>
+        `).join('');
+    }
+
+    function selectSkill(skillId) {
+        document.querySelectorAll('.skill-opt').forEach(o => o.classList.remove('selected'));
+        document.querySelector(`[data-skill="${skillId}"]`).classList.add('selected');
+        selectedSkill = skillId;
+    }
+
+    // МОДАЛКИ
+    function openModal() {
+        document.getElementById('modal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.remove('show');
+    }
+
+    function openSkillModal() {
+        document.getElementById('skillModal').classList.add('show');
+    }
+
+    function closeSkillModal() {
+        document.getElementById('skillModal').classList.remove('show');
+    }
+
+    function saveSkill() {
+        const emoji = document.getElementById('skillEmoji').value.trim();
+        const name = document.getElementById('skillName').value.trim();
+        
+        if (!emoji || !name) {
+            showToast('Заполните все поля');
+            return;
+        }
+        
+        const skillId = 'skill_' + Date.now();
+        skills[skillId] = { name, icon: emoji };
+        stats.skills[skillId] = 0;
+        
+        saveData();
+        renderSkills();
+        updateSkillsView();
+        closeSkillModal();
+        showToast('Навык добавлен');
+    }
+
+    function saveTask() {
+        const title = document.getElementById('inputTitle').value.trim();
+        if (!title) {
+            showToast('Введите название');
+            return;
+        }
+        
+        const task = {
+            id: Date.now(),
+            title,
+            description: document.getElementById('inputDesc').value.trim(),
+            completed: false,
+            skill: selectedSkill,
+            category: currentCategory
+        };
+        
+        tasks[currentCategory].push(task);
+        saveData();
+        renderTasks();
+        closeModal();
+        showToast('Задача добавлена');
+    }
+
+    // РЕНДЕР ЗАДАЧ - С ДОБАВЛЕНИЕМ СВАЙПА
+    function renderTasks() {
+        const container = document.getElementById('tasksContainer');
+        const categoryTasks = tasks[currentCategory];
+        
+        if (categoryTasks.length === 0) {
+            container.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon">📝</div>
+                    <div class="empty-text">Нет задач</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = categoryTasks.map(task => {
+            const progress = calculateProgress(task);
+            const skillInfo = task.skill && skills[task.skill] ? skills[task.skill] : null;
+            return `
+                <div class="task ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+                    <div class="task-body">
+                        <div class="task-check ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
+                        <div class="task-content">
+                            <div class="task-title">${task.title}</div>
+                            ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
+                            <div class="task-tags">
+                                ${skillInfo ? `<div class="task-tag">${skillInfo.icon} +1</div>` : ''}
+                            </div>
+                            ${progress > 0 ? `
+                                <div class="task-progress">
+                                    <div class="task-progress-fill" style="width: ${progress}%"></div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // ИНИЦИАЛИЗАЦИЯ СВАЙПА ПОСЛЕ РЕНДЕРА
+        initSwipe();
+    }
+
+    // ПЕРЕКЛЮЧЕНИЕ ЗАДАЧИ
+    function toggleTask(id) {
+        const task = tasks[currentCategory].find(t => t.id === id);
+        if (!task) return;
+        
+        task.completed = !task.completed;
+        
+        if (task.completed) {
+            stats.completed++;
+            if (task.skill && stats.skills[task.skill] !== undefined) {
+                stats.skills[task.skill]++;
+            }
+            showToast('Выполнено! +1 опыт');
+        } else {
+            stats.completed--;
+            if (task.skill && stats.skills[task.skill] !== undefined) {
+                stats.skills[task.skill] = Math.max(0, stats.skills[task.skill] - 1);
+            }
+        }
+        
+        saveData();
+        renderTasks();
+        updateStats();
+        updateSkillsView();
+    }
+
+    // УДАЛЕНИЕ ЗАДАЧИ - ПРОСТАЯ И РАБОЧАЯ ВЕРСИЯ
+    function deleteTask(id) {
+        console.log('Удаляем задачу:', id);
+        
+        // Ищем задачу в текущей категории
+        const taskIndex = tasks[currentCategory].findIndex(t => t.id === id);
+        if (taskIndex === -1) return;
+        
+        const task = tasks[currentCategory][taskIndex];
+        
+        // Обновляем статистику
+        if (task.completed) {
+            stats.completed = Math.max(0, stats.completed - 1);
+            if (task.skill && stats.skills[task.skill] !== undefined) {
+                stats.skills[task.skill] = Math.max(0, stats.skills[task.skill] - 1);
+            }
+        }
+        
+        // УДАЛЯЕМ ЗАДАЧУ
+        tasks[currentCategory].splice(taskIndex, 1);
+        
+        saveData();
+        renderTasks();
+        updateStats();
+        updateSkillsView();
+        showToast('Задача удалена');
+    }
+
+    // СВАЙП ДЛЯ УДАЛЕНИЯ - РАБОЧАЯ ВЕРСИЯ
+    function initSwipe() {
+        const tasks = document.querySelectorAll('.task');
+        
+        tasks.forEach(task => {
+            let startX = 0;
+            let currentX = 0;
+            let isSwiping = false;
+            
+            task.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                isSwiping = true;
+                task.style.transition = 'none';
+            });
+            
+            task.addEventListener('touchmove', e => {
+                if (!isSwiping) return;
+                
+                currentX = e.touches[0].clientX;
+                const diff = currentX - startX;
+                
+                // Свайп только влево
+                if (diff < 0) {
+                    const translate = Math.max(diff, -100);
+                    task.style.transform = `translateX(${translate}px)`;
+                    
+                    // Индикация готовности к удалению
+                    if (Math.abs(diff) > 60) {
+                        task.style.opacity = '0.5';
+                    } else {
+                        task.style.opacity = '1';
+                    }
+                }
+            });
+            
+            task.addEventListener('touchend', e => {
+                if (!isSwiping) return;
+                
+                const diff = currentX - startX;
+                task.style.transition = 'all 0.3s ease';
+                
+                // Удаление при свайпе больше порога
+                if (Math.abs(diff) > 60) {
+                    // Анимация удаления
+                    task.style.transform = 'translateX(-100%)';
+                    task.style.opacity = '0';
+                    
+                    // Удаление после анимации
+                    setTimeout(() => {
+                        const taskId = parseInt(task.dataset.id);
+                        deleteTask(taskId);
+                    }, 300);
+                } else {
+                    // Возврат на место
+                    task.style.transform = 'translateX(0)';
+                    task.style.opacity = '1';
+                }
+                
+                isSwiping = false;
+            });
+        });
+    }
+
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    function calculateProgress(task) {
+        if (!task.subtasks || task.subtasks.length === 0) return 0;
+        const completed = task.subtasks.filter(st => {
+            const subtask = tasks[st.category]?.find(t => t.id === st.id);
+            return subtask?.completed;
+        }).length;
+        return Math.round((completed / task.subtasks.length) * 100);
+    }
+
+    function showToast(text) {
+        const toast = document.getElementById('toast');
+        toast.textContent = text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
+    function updateStats() {
+        document.getElementById('statCompleted').textContent = stats.completed;
+        document.getElementById('statStreak').textContent = stats.streak;
+        
+        let totalExp = 0;
+        Object.values(stats.skills).forEach(exp => {
+            totalExp += exp;
+        });
+        document.getElementById('statLevel').textContent = Math.floor(totalExp / 10);
+    }
+
+    function updateSkillsView() {
+        const container = document.getElementById('skillsView');
+        
+        const skillCards = Object.entries(skills).map(([id, skill]) => {
+            const exp = stats.skills[id] || 0;
+            const level = Math.floor(exp / 10);
+            const progress = (exp % 10) * 10;
+            
+            return `
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <div class="skill-icon-large">${skill.icon}</div>
+                        <div class="skill-info">
+                            <div class="skill-name">${skill.name}</div>
+                            <div class="skill-level">Уровень ${level}</div>
+                        </div>
+                    </div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = skillCards;
+    }
+
+    // СОХРАНЕНИЕ И ЗАГРУЗКА
+    function saveData() {
+        localStorage.setItem('questTasks', JSON.stringify(tasks));
+        localStorage.setItem('questStats', JSON.stringify(stats));
+        localStorage.setItem('questSkills', JSON.stringify(skills));
+    }
+
+    function loadData() {
+        const savedTasks = localStorage.getItem('questTasks');
+        const savedStats = localStorage.getItem('questStats');
+        const savedSkills = localStorage.getItem('questSkills');
+        
+        if (savedTasks) tasks = JSON.parse(savedTasks);
+        if (savedStats) stats = JSON.parse(savedStats);
+        if (savedSkills) skills = JSON.parse(savedSkills);
+        
+        // Инициализируем навыки в статистике
+        Object.keys(skills).forEach(skillId => {
+            if (stats.skills[skillId] === undefined) {
+                stats.skills[skillId] = 0;
+            }
+        });
+    }
+
+    // ЗАКРЫТИЕ МОДАЛОК
+    document.getElementById('modal').addEventListener('click', e => {
+        if (e.target.id === 'modal') closeModal();
+    });
+    
+    document.getElementById('skillModal').addEventListener('click', e => {
+        if (e.target.id === 'skillModal') closeSkillModal();
+    });
+    </script>
+</body>
+</html>
