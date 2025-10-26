@@ -1155,89 +1155,132 @@
     // СВАЙП ДЛЯ УДАЛЕНИЯ И ДОБАВЛЕНИЯ ПОДЗАДАЧ
     function initSwipe() {
         const taskElements = document.querySelectorAll('.task');
-        
+    
         taskElements.forEach(task => {
             let startX = 0;
+            let startY = 0;
             let currentX = 0;
-            let isSwiping = false;
+            let isTracking = false;      // трекаем касание
+            let isSwiping = false;       // свайп активирован только после порога
             let taskId = parseInt(task.dataset.id);
-            let taskCategory = task.dataset.category; // Получаем категорию задачи
-            
+            let taskCategory = task.dataset.category;
+    
+            const ACTIVATE_THRESHOLD = 12;   // порог активации свайпа (px)
+            const ACTION_THRESHOLD = 60;     // порог действия (px)
+            const MAX_TRANSLATE = 100;
+    
             task.addEventListener('touchstart', e => {
-                // Игнорируем свайп если клик на интерактивных элементах
-                if (e.target.closest('.task-check') || 
-                    e.target.closest('.subtask-check') || 
+                // Игнорируем, если по интерактивным элементам
+                if (e.target.closest('.task-check') ||
+                    e.target.closest('.subtask-check') ||
                     e.target.closest('.subtask-delete')) {
                     return;
                 }
-                
-                startX = e.touches[0].clientX;
-                isSwiping = true;
+    
+                const t = e.touches[0];
+                startX = t.clientX;
+                startY = t.clientY;
+                isTracking = true;
+                isSwiping = false;
+                currentX = startX;
                 task.style.transition = 'none';
-            });
-            
+                task.classList.remove('add-subtask-mode');
+            }, { passive: true });
+    
             task.addEventListener('touchmove', e => {
-                if (!isSwiping) return;
-                
-                currentX = e.touches[0].clientX;
-                const diff = currentX - startX;
-                
-                // Свайп влево для удаления
-                if (diff < 0) {
-                    const translate = Math.max(diff, -100);
-                    task.style.transform = `translateX(${translate}px)`;
-                    
-                    if (Math.abs(diff) > 60) {
-                        task.style.opacity = '0.5';
+                if (!isTracking) return;
+    
+                const t = e.touches[0];
+                currentX = t.clientX;
+                const dx = currentX - startX;
+                const dy = t.clientY - startY;
+    
+                // Активируем горизонтальный свайп только если он явно больше вертикального и превышает порог
+                if (!isSwiping) {
+                    if (Math.abs(dx) > ACTIVATE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+                        isSwiping = true;
                     } else {
-                        task.style.opacity = '1';
+                        return; // пока не свайп — ничего не делаем
                     }
-                } 
-                // Свайп вправо для добавления подзадач (только для medium и big)
-                else if (diff > 0 && (taskCategory === 'medium' || taskCategory === 'big')) {
-                    const translate = Math.min(diff, 100);
+                }
+    
+                // Когда свайп активирован — двигаем карточку
+                if (dx < 0) {
+                    const translate = Math.max(dx, -MAX_TRANSLATE);
                     task.style.transform = `translateX(${translate}px)`;
-                    
-                    if (diff > 60) {
+                    task.style.opacity = Math.abs(dx) > ACTION_THRESHOLD ? '0.5' : '1';
+                } else if (dx > 0 && (taskCategory === 'medium' || taskCategory === 'big')) {
+                    const translate = Math.min(dx, MAX_TRANSLATE);
+                    task.style.transform = `translateX(${translate}px)`;
+                    if (dx > ACTION_THRESHOLD) {
                         task.classList.add('add-subtask-mode');
                     } else {
                         task.classList.remove('add-subtask-mode');
                     }
                 }
-            });
-            
-            task.addEventListener('touchend', e => {
-                if (!isSwiping) return;
-                
-                const diff = currentX - startX;
+            }, { passive: true });
+    
+            function endSwipe() {
+                if (!isTracking) return;
+    
+                const dx = currentX - startX;
                 task.style.transition = 'all 0.3s ease';
-                
-                // Удаление при свайпе влево
-                if (Math.abs(diff) > 60 && diff < 0) {
+    
+                // Если свайп не активирован или движение маленькое — это тап. Ничего не делаем.
+                if (!isSwiping || Math.abs(dx) < ACTION_THRESHOLD) {
+                    task.style.transform = 'translateX(0)';
+                    task.style.opacity = '1';
+                    task.classList.remove('add-subtask-mode');
+                    isTracking = false;
+                    isSwiping = false;
+                    return;
+                }
+    
+                // Действия по порогу
+                if (dx < 0) {
+                    // Удаление при левом свайпе
                     task.style.transform = 'translateX(-100%)';
                     task.style.opacity = '0';
-                    
                     setTimeout(() => {
-                        deleteTask(taskId, taskCategory); // Передаем категорию задачи
+                        deleteTask(taskId, taskCategory);
                     }, 300);
-                } 
-                // Добавление подзадач при свайпе вправо
-                else if (Math.abs(diff) > 60 && diff > 0 && (taskCategory === 'medium' || taskCategory === 'big')) {
+                } else if (dx > 0 && (taskCategory === 'medium' || taskCategory === 'big')) {
+                    // Режим подзадач при правом свайпе
                     task.style.transform = 'translateX(0)';
                     task.classList.remove('add-subtask-mode');
-                    openSubtaskModal(taskId, taskCategory); // Передаем категорию задачи
+                    openSubtaskModal(taskId, taskCategory);
                     showToast('Режим подзадач');
-                } 
-                else {
+                } else {
                     task.style.transform = 'translateX(0)';
                     task.style.opacity = '1';
                     task.classList.remove('add-subtask-mode');
                 }
-                
+    
+                isTracking = false;
                 isSwiping = false;
+            }
+    
+            task.addEventListener('touchend', endSwipe, { passive: true });
+            task.addEventListener('touchcancel', endSwipe, { passive: true });
+    
+            // Блокируем клики и даблклики по карточке (кроме интерактивов)
+            task.addEventListener('click', (e) => {
+                if (e.target.closest('.task-check') ||
+                    e.target.closest('.subtask-check') ||
+                    e.target.closest('.subtask-delete')) {
+                    return;
+                }
+                e.stopPropagation();
+                e.preventDefault();
+            });
+    
+            task.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
             });
         });
     }
+
 
     // ПОДЗАДАЧИ
     function renderSubtasks() {
