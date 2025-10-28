@@ -306,6 +306,7 @@
 
         .form-group {
             margin-bottom: 16px;
+            position: relative;
         }
 
         .form-label {
@@ -328,6 +329,7 @@
         .skills-input-container {
             display: flex;
             gap: 8px;
+            position: relative;
         }
 
         .skills-input {
@@ -449,6 +451,76 @@
         .toggle-option.active {
             background: var(--primary);
         }
+
+        /* Новые стили для улучшенного управления навыками */
+        .skills-suggestions {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+            margin-top: 4px;
+        }
+
+        .skill-suggestion {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--glass-border);
+            transition: background 0.2s ease;
+        }
+
+        .skill-suggestion:hover, .skill-suggestion.highlight {
+            background: var(--primary);
+        }
+
+        .skill-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .recent-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .recent-skill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(6, 214, 160, 0.1);
+            border: 1px solid rgba(6, 214, 160, 0.3);
+            border-radius: 12px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .recent-skill:hover {
+            background: rgba(6, 214, 160, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .remove-recent-skill {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -511,21 +583,25 @@
                     <label class="form-label" for="task-title">Название задачи</label>
                     <input type="text" id="task-title" class="form-input" placeholder="Что нужно сделать?" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="task-category">Категория</label>
-                    <select id="task-category" class="form-select">
-                        <option value="quick">Быстрая (до 30 мин)</option>
-                        <option value="medium">Средняя (1-2 часа)</option>
-                        <option value="large">Большая (полдня)</option>
-                        <option value="boss">Босс (целый день)</option>
-                    </select>
-                </div>
+                
                 <div class="form-group">
                     <label class="form-label">Навыки</label>
-                    <div class="skills-input-container">
-                        <input type="text" id="skill-input" class="form-input skills-input" placeholder="Добавить навык">
-                        <button type="button" class="add-skill-btn" id="add-skill-btn">+</button>
+                    
+                    <!-- Ранее использованные навыки -->
+                    <div class="recent-skills" id="recent-skills">
+                        <!-- Recent skills will be loaded here -->
                     </div>
+                    
+                    <!-- Поле ввода с автодополнением -->
+                    <div class="skills-input-container">
+                        <input type="text" id="skill-input" class="form-input skills-input" placeholder="Начните вводить навык...">
+                        <button type="button" class="add-skill-btn" id="add-skill-btn">+</button>
+                        <div class="skills-suggestions" id="skills-suggestions">
+                            <!-- Suggestions will appear here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Выбранные навыки -->
                     <div class="selected-skills" id="selected-skills">
                         <!-- Selected skills will appear here -->
                     </div>
@@ -566,14 +642,19 @@
         const totalTasksEl = document.getElementById('total-tasks');
         const completedTasksEl = document.getElementById('completed-tasks');
         const totalSkillsEl = document.getElementById('total-skills');
+        const skillsSuggestions = document.getElementById('skills-suggestions');
+        const recentSkills = document.getElementById('recent-skills');
 
-        // Selected skills for the current task
+        // Skills management
         let selectedSkills = [];
+        let allSkills = new Set();
+        let recentSkillsList = [];
 
         // Load data from localStorage
         function loadData() {
             const savedTasks = localStorage.getItem('liquidTasks');
             const savedSkills = localStorage.getItem('liquidSkills');
+            const savedRecentSkills = localStorage.getItem('liquidRecentSkills');
             
             if (savedTasks) {
                 state.tasks = JSON.parse(savedTasks);
@@ -583,6 +664,10 @@
                 state.skills = JSON.parse(savedSkills);
             }
             
+            if (savedRecentSkills) {
+                recentSkillsList = JSON.parse(savedRecentSkills);
+            }
+            
             updateUI();
         }
 
@@ -590,6 +675,7 @@
         function saveData() {
             localStorage.setItem('liquidTasks', JSON.stringify(state.tasks));
             localStorage.setItem('liquidSkills', JSON.stringify(state.skills));
+            localStorage.setItem('liquidRecentSkills', JSON.stringify(recentSkillsList));
         }
 
         // Update UI based on current state
@@ -710,6 +796,15 @@
                 task.completed = true;
                 task.skills.forEach(skill => {
                     state.skills[skill] = (state.skills[skill] || 0) + 1;
+                    
+                    // Add to recent skills if not already there
+                    if (!recentSkillsList.includes(skill)) {
+                        recentSkillsList.unshift(skill);
+                        // Keep only last 10 skills
+                        if (recentSkillsList.length > 10) {
+                            recentSkillsList.pop();
+                        }
+                    }
                 });
                 
                 // Add haptic feedback if available
@@ -737,6 +832,95 @@
             updateUI();
         }
 
+        // Load all existing skills from tasks
+        function loadAllSkills() {
+            allSkills.clear();
+            state.tasks.forEach(task => {
+                task.skills.forEach(skill => allSkills.add(skill));
+            });
+        }
+
+        // Update skills suggestions based on input
+        function updateSkillsSuggestions() {
+            const inputValue = skillInput.value.toLowerCase().trim();
+            
+            if (inputValue.length === 0) {
+                skillsSuggestions.style.display = 'none';
+                return;
+            }
+            
+            // Filter skills that match input and not already selected
+            const matchingSkills = Array.from(allSkills).filter(skill => 
+                skill.toLowerCase().includes(inputValue) && 
+                !selectedSkills.includes(skill)
+            );
+            
+            if (matchingSkills.length === 0) {
+                skillsSuggestions.style.display = 'none';
+                return;
+            }
+            
+            skillsSuggestions.innerHTML = matchingSkills.map(skill => `
+                <div class="skill-suggestion" data-skill="${skill}">
+                    ${skill}
+                </div>
+            `).join('');
+            
+            skillsSuggestions.style.display = 'block';
+            
+            // Add event listeners to suggestions
+            document.querySelectorAll('.skill-suggestion').forEach(suggestion => {
+                suggestion.addEventListener('click', function() {
+                    addSkillToTask(this.getAttribute('data-skill'));
+                    skillsSuggestions.style.display = 'none';
+                    skillInput.value = '';
+                });
+            });
+        }
+
+        // Render recent skills
+        function renderRecentSkills() {
+            if (recentSkillsList.length === 0) {
+                recentSkills.innerHTML = '';
+                return;
+            }
+            
+            recentSkills.innerHTML = recentSkillsList
+                .filter(skill => !selectedSkills.includes(skill))
+                .map(skill => `
+                    <div class="recent-skill">
+                        <span>${skill}</span>
+                        <button class="remove-recent-skill" data-skill="${skill}">&times;</button>
+                    </div>
+                `).join('');
+            
+            // Add event listeners to recent skills
+            document.querySelectorAll('.recent-skill').forEach(skillEl => {
+                skillEl.addEventListener('click', function(e) {
+                    // Don't trigger if the remove button was clicked
+                    if (!e.target.classList.contains('remove-recent-skill')) {
+                        addSkillToTask(this.querySelector('span').textContent);
+                    }
+                });
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-recent-skill').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const skillToRemove = this.getAttribute('data-skill');
+                    removeRecentSkill(skillToRemove);
+                });
+            });
+        }
+
+        // Remove a skill from recent list
+        function removeRecentSkill(skill) {
+            recentSkillsList = recentSkillsList.filter(s => s !== skill);
+            saveData();
+            renderRecentSkills();
+        }
+
         // Add a skill to the current task
         function addSkillToTask(skillName) {
             if (!skillName.trim()) return;
@@ -746,15 +930,23 @@
             if (!selectedSkills.includes(normalizedSkill)) {
                 selectedSkills.push(normalizedSkill);
                 renderSelectedSkills();
+                
+                // Add to all skills set
+                allSkills.add(normalizedSkill);
+                
+                // Update recent skills display
+                renderRecentSkills();
             }
             
             skillInput.value = '';
+            skillsSuggestions.style.display = 'none';
         }
 
         // Remove a skill from the current task
         function removeSkillFromTask(skillName) {
             selectedSkills = selectedSkills.filter(skill => skill !== skillName);
             renderSelectedSkills();
+            renderRecentSkills();
         }
 
         // Render selected skills in the modal
@@ -808,6 +1000,8 @@
             // Add task button
             addTaskBtn.addEventListener('click', function() {
                 taskModal.classList.add('active');
+                loadAllSkills();
+                renderRecentSkills();
             });
             
             // Close modal button
@@ -815,6 +1009,7 @@
                 taskModal.classList.remove('active');
                 selectedSkills = [];
                 renderSelectedSkills();
+                skillsSuggestions.style.display = 'none';
             });
             
             // Task form submission
@@ -822,11 +1017,11 @@
                 e.preventDefault();
                 
                 const title = document.getElementById('task-title').value;
-                const category = document.getElementById('task-category').value;
                 
                 if (!title.trim()) return;
                 
-                addTask(title, category, [...selectedSkills]);
+                // Use current category for the new task
+                addTask(title, state.currentCategory, [...selectedSkills]);
                 
                 // Reset form
                 taskForm.reset();
@@ -845,6 +1040,47 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     addSkillToTask(this.value);
+                }
+            });
+            
+            // Update suggestions on input
+            skillInput.addEventListener('input', function() {
+                updateSkillsSuggestions();
+            });
+            
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.skills-input-container')) {
+                    skillsSuggestions.style.display = 'none';
+                }
+            });
+            
+            // Keyboard navigation for suggestions
+            skillInput.addEventListener('keydown', function(e) {
+                const suggestions = document.querySelectorAll('.skill-suggestion');
+                const activeSuggestion = document.querySelector('.skill-suggestion.highlight');
+                
+                if (e.key === 'ArrowDown' && suggestions.length > 0) {
+                    e.preventDefault();
+                    if (activeSuggestion) {
+                        const next = activeSuggestion.nextElementSibling;
+                        activeSuggestion.classList.remove('highlight');
+                        if (next) next.classList.add('highlight');
+                    } else {
+                        suggestions[0].classList.add('highlight');
+                    }
+                } else if (e.key === 'ArrowUp' && suggestions.length > 0) {
+                    e.preventDefault();
+                    if (activeSuggestion) {
+                        const prev = activeSuggestion.previousElementSibling;
+                        activeSuggestion.classList.remove('highlight');
+                        if (prev) prev.classList.add('highlight');
+                    } else {
+                        suggestions[suggestions.length - 1].classList.add('highlight');
+                    }
+                } else if (e.key === 'Enter' && activeSuggestion) {
+                    e.preventDefault();
+                    activeSuggestion.click();
                 }
             });
         }
