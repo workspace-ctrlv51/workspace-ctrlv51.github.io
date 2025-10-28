@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Tasks</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-light: #8B5CF6;
+            --secondary: #06D6A0;
+            --danger: #EF476F;
+            --warning: #FFD166;
+            --dark: #1E1E2E;
+            --light: #F8FAFC;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 50%, #16213E 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 90px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 16px 0;
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            flex: 1;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+            overflow-x: hidden;
+            padding-bottom: 8px;
+            justify-content: space-between;
+        }
+
+        .category-tab {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 8px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .category-tab.active {
+            background: var(--primary);
+            border-color: var(--primary-light);
+        }
+
+        .tasks-container {
+            margin-bottom: 24px;
+        }
+
+        .task-item {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .task-item.quick::before {
+            background: var(--secondary);
+        }
+
+        .task-item.medium::before {
+            background: var(--warning);
+        }
+
+        .task-item.large::before {
+            background: var(--primary);
+        }
+
+        .task-item.boss::before {
+            background: var(--danger);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .task-category {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-left: 8px;
+        }
+
+        .task-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .skill-tag {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .task-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .complete-btn {
+            background: var(--secondary);
+            color: var(--dark);
+            border: none;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .complete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(6, 214, 160, 0.3);
+        }
+
+        .skill-points {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .add-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 28px rgba(99, 102, 241, 0.5);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1E1E2E 0%, #25253A 100%);
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .skills-input-container {
+            display: flex;
+            gap: 8px;
+        }
+
+        .skills-input {
+            flex: 1;
+        }
+
+        .add-skill-btn {
+            background: var(--primary);
+            border: none;
+            border-radius: 12px;
+            padding: 0 16px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .selected-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .selected-skill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+        .remove-skill {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .skills-view {
+            display: none;
+        }
+
+        .skill-item {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .skill-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .skill-level {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-option.active {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="app-title">Liquid Tasks</h1>
+        </div>
+
+        <div class="view-toggle">
+            <div class="toggle-option active" data-view="tasks">Задачи</div>
+            <div class="toggle-option" data-view="skills">Навыки</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="total-tasks">0</div>
+                <div class="stat-label">Всего задач</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="completed-tasks">0</div>
+                <div class="stat-label">Выполнено</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total-skills">0</div>
+                <div class="stat-label">Навыков</div>
+            </div>
+        </div>
+
+        <div class="tasks-view">
+            <div class="category-tabs">
+                <div class="category-tab active" data-category="quick">Быстрые</div>
+                <div class="category-tab" data-category="medium">Средние</div>
+                <div class="category-tab" data-category="large">Большие</div>
+                <div class="category-tab" data-category="boss">Боссы</div>
+            </div>
+
+            <div class="tasks-container" id="tasks-container">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+
+        <div class="skills-view">
+            <div class="tasks-container" id="skills-container">
+                <!-- Skills will be loaded here -->
+            </div>
+        </div>
+
+        <button class="add-btn" id="add-task-btn">+</button>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Новая задача</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <form id="task-form">
+                <div class="form-group">
+                    <label class="form-label" for="task-title">Название задачи</label>
+                    <input type="text" id="task-title" class="form-input" placeholder="Что нужно сделать?" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-category">Категория</label>
+                    <select id="task-category" class="form-select">
+                        <option value="quick">Быстрая (до 30 мин)</option>
+                        <option value="medium">Средняя (1-2 часа)</option>
+                        <option value="large">Большая (полдня)</option>
+                        <option value="boss">Босс (целый день)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Навыки</label>
+                    <div class="skills-input-container">
+                        <input type="text" id="skill-input" class="form-input skills-input" placeholder="Добавить навык">
+                        <button type="button" class="add-skill-btn" id="add-skill-btn">+</button>
+                    </div>
+                    <div class="selected-skills" id="selected-skills">
+                        <!-- Selected skills will appear here -->
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Добавить задачу</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // App State
+        let state = {
+            tasks: [],
+            skills: {},
+            currentCategory: 'quick',
+            currentView: 'tasks'
+        };
+
+        // DOM Elements
+        const tasksContainer = document.getElementById('tasks-container');
+        const skillsContainer = document.getElementById('skills-container');
+        const taskModal = document.getElementById('task-modal');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const closeModalBtn = document.getElementById('close-modal');
+        const taskForm = document.getElementById('task-form');
+        const categoryTabs = document.querySelectorAll('.category-tab');
+        const viewToggles = document.querySelectorAll('.toggle-option');
+        const addSkillBtn = document.getElementById('add-skill-btn');
+        const skillInput = document.getElementById('skill-input');
+        const selectedSkillsContainer = document.getElementById('selected-skills');
+        const totalTasksEl = document.getElementById('total-tasks');
+        const completedTasksEl = document.getElementById('completed-tasks');
+        const totalSkillsEl = document.getElementById('total-skills');
+
+        // Selected skills for the current task
+        let selectedSkills = [];
+
+        // Load data from localStorage
+        function loadData() {
+            const savedTasks = localStorage.getItem('liquidTasks');
+            const savedSkills = localStorage.getItem('liquidSkills');
+            
+            if (savedTasks) {
+                state.tasks = JSON.parse(savedTasks);
+            }
+            
+            if (savedSkills) {
+                state.skills = JSON.parse(savedSkills);
+            }
+            
+            updateUI();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('liquidTasks', JSON.stringify(state.tasks));
+            localStorage.setItem('liquidSkills', JSON.stringify(state.skills));
+        }
+
+        // Update UI based on current state
+        function updateUI() {
+            renderTasks();
+            renderSkills();
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalTasks = state.tasks.length;
+            const completedTasks = state.tasks.filter(task => task.completed).length;
+            const totalSkills = Object.keys(state.skills).length;
+            
+            totalTasksEl.textContent = totalTasks;
+            completedTasksEl.textContent = completedTasks;
+            totalSkillsEl.textContent = totalSkills;
+        }
+
+        // Render tasks based on current category
+        function renderTasks() {
+            const filteredTasks = state.tasks.filter(task => task.category === state.currentCategory);
+            
+            if (filteredTasks.length === 0) {
+                tasksContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <p>Нет задач в этой категории</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            tasksContainer.innerHTML = filteredTasks.map(task => `
+                <div class="task-item ${task.category}" data-id="${task.id}">
+                    <div class="task-header">
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-category">${getCategoryName(task.category)}</div>
+                    </div>
+                    ${task.skills.length > 0 ? `
+                        <div class="task-skills">
+                            ${task.skills.map(skill => `
+                                <div class="skill-tag">${skill}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="task-actions">
+                        <button class="complete-btn" data-id="${task.id}">
+                            ${task.completed ? '✓ Выполнено' : 'Выполнить'}
+                        </button>
+                        <div class="skill-points">+${task.skills.length}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add event listeners to complete buttons
+            document.querySelectorAll('.complete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-id');
+                    completeTask(taskId);
+                });
+            });
+        }
+
+        // Render skills
+        function renderSkills() {
+            const skills = Object.entries(state.skills);
+            
+            if (skills.length === 0) {
+                skillsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎯</div>
+                        <p>Навыки появятся после выполнения задач</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            skillsContainer.innerHTML = skills.map(([skill, level]) => `
+                <div class="skill-item">
+                    <div class="skill-name">${skill}</div>
+                    <div class="skill-level">Уровень: ${level}</div>
+                </div>
+            `).join('');
+        }
+
+        // Get category name for display
+        function getCategoryName(category) {
+            const names = {
+                'quick': 'Быстрая',
+                'medium': 'Средняя',
+                'large': 'Большая',
+                'boss': 'Босс'
+            };
+            return names[category] || category;
+        }
+
+        // Complete a task
+        function completeTask(taskId) {
+            const taskIndex = state.tasks.findIndex(task => task.id === taskId);
+            if (taskIndex === -1) return;
+            
+            const task = state.tasks[taskIndex];
+            
+            if (task.completed) {
+                // If already completed, mark as incomplete and remove skill points
+                task.completed = false;
+                task.skills.forEach(skill => {
+                    if (state.skills[skill] > 1) {
+                        state.skills[skill]--;
+                    } else {
+                        delete state.skills[skill];
+                    }
+                });
+            } else {
+                // Mark as completed and add skill points
+                task.completed = true;
+                task.skills.forEach(skill => {
+                    state.skills[skill] = (state.skills[skill] || 0) + 1;
+                });
+                
+                // Add haptic feedback if available
+                if (tg?.HapticFeedback?.impactOccurred) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+            }
+            
+            saveData();
+            updateUI();
+        }
+
+        // Add a new task
+        function addTask(title, category, skills) {
+            const newTask = {
+                id: Date.now().toString(),
+                title,
+                category,
+                skills,
+                completed: false
+            };
+            
+            state.tasks.unshift(newTask);
+            saveData();
+            updateUI();
+        }
+
+        // Add a skill to the current task
+        function addSkillToTask(skillName) {
+            if (!skillName.trim()) return;
+            
+            const normalizedSkill = skillName.trim().toLowerCase();
+            
+            if (!selectedSkills.includes(normalizedSkill)) {
+                selectedSkills.push(normalizedSkill);
+                renderSelectedSkills();
+            }
+            
+            skillInput.value = '';
+        }
+
+        // Remove a skill from the current task
+        function removeSkillFromTask(skillName) {
+            selectedSkills = selectedSkills.filter(skill => skill !== skillName);
+            renderSelectedSkills();
+        }
+
+        // Render selected skills in the modal
+        function renderSelectedSkills() {
+            selectedSkillsContainer.innerHTML = selectedSkills.map(skill => `
+                <div class="selected-skill">
+                    <span>${skill}</span>
+                    <button type="button" class="remove-skill" data-skill="${skill}">&times;</button>
+                </div>
+            `).join('');
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-skill').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const skillToRemove = this.getAttribute('data-skill');
+                    removeSkillFromTask(skillToRemove);
+                });
+            });
+        }
+
+        // Initialize event listeners
+        function initEventListeners() {
+            // Category tabs
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    state.currentCategory = this.getAttribute('data-category');
+                    renderTasks();
+                });
+            });
+            
+            // View toggles
+            viewToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    viewToggles.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    state.currentView = this.getAttribute('data-view');
+                    
+                    if (state.currentView === 'tasks') {
+                        document.querySelector('.tasks-view').style.display = 'block';
+                        document.querySelector('.skills-view').style.display = 'none';
+                    } else {
+                        document.querySelector('.tasks-view').style.display = 'none';
+                        document.querySelector('.skills-view').style.display = 'block';
+                    }
+                });
+            });
+            
+            // Add task button
+            addTaskBtn.addEventListener('click', function() {
+                taskModal.classList.add('active');
+            });
+            
+            // Close modal button
+            closeModalBtn.addEventListener('click', function() {
+                taskModal.classList.remove('active');
+                selectedSkills = [];
+                renderSelectedSkills();
+            });
+            
+            // Task form submission
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('task-title').value;
+                const category = document.getElementById('task-category').value;
+                
+                if (!title.trim()) return;
+                
+                addTask(title, category, [...selectedSkills]);
+                
+                // Reset form
+                taskForm.reset();
+                selectedSkills = [];
+                renderSelectedSkills();
+                taskModal.classList.remove('active');
+            });
+            
+            // Add skill button
+            addSkillBtn.addEventListener('click', function() {
+                addSkillToTask(skillInput.value);
+            });
+            
+            // Add skill on Enter key
+            skillInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSkillToTask(this.value);
+                }
+            });
+        }
+
+        // Initialize the app
+        function init() {
+            loadData();
+            initEventListeners();
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
