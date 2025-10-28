@@ -196,20 +196,20 @@
             background: linear-gradient(
                 90deg,
                 transparent,
-                rgba(255, 255, 255, 0.4),
+                rgba(255, 255, 255, 0.3),
                 transparent
             );
             transition: left 0.6s ease;
             opacity: 0;
         }
 
-        .category-tab.pressed::after {
+        .category-tab:active::after {
             left: 100%;
             opacity: 1;
         }
 
         /* Эффект crystall glass при нажатии на категории */
-        .category-tab.pressed {
+        .category-tab:active {
             transform: scale(0.98);
             backdrop-filter: blur(25px) saturate(200%);
             box-shadow: 
@@ -343,26 +343,18 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .complete-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 
-                0 4px 8px rgba(6, 214, 160, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .complete-btn.completed {
-            background: var(--text-dim);
-            color: var(--text-primary);
-        }
-
-        /* Эффект для кнопки выполнения задачи */
-        .complete-btn.pressed {
+        .complete-btn:active {
             transform: scale(0.95);
             backdrop-filter: blur(20px) saturate(180%);
             box-shadow: 
                 0 0 20px rgba(6, 214, 160, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2),
                 inset 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .complete-btn.completed {
+            background: var(--text-dim);
+            color: var(--text-primary);
         }
 
         .skill-points {
@@ -404,22 +396,12 @@
             opacity: 0.7;
         }
 
-        .delete-btn:hover {
+        .delete-btn:active {
             background: var(--danger);
             color: white;
-            transform: scale(1.1);
+            transform: scale(0.9);
             opacity: 1;
             box-shadow: 0 0 10px rgba(239, 71, 111, 0.5);
-        }
-
-        /* Эффект для кнопки удаления */
-        .delete-btn.pressed {
-            transform: scale(0.9);
-            backdrop-filter: blur(15px) saturate(200%);
-            box-shadow: 
-                0 0 15px rgba(239, 71, 111, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                inset 0 0 8px rgba(255, 255, 255, 0.05);
         }
 
         .add-btn {
@@ -446,15 +428,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .add-btn:hover {
-            transform: scale(1.08);
-            box-shadow: 
-                0 8px 24px rgba(99, 102, 241, 0.5),
-                0 0 20px rgba(99, 102, 241, 0.4);
-        }
-
-        /* Эффект для кнопки добавления */
-        .add-btn.pressed {
+        .add-btn:active {
             transform: scale(0.92);
             backdrop-filter: blur(30px) saturate(220%);
             box-shadow: 
@@ -581,8 +555,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Эффект для кнопки добавления навыка */
-        .add-skill-btn.pressed {
+        .add-skill-btn:active {
             transform: scale(0.94);
             backdrop-filter: blur(18px) saturate(180%);
             box-shadow: 
@@ -637,15 +610,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .submit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 
-                0 6px 16px rgba(99, 102, 241, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        /* Эффект для кнопки отправки формы */
-        .submit-btn.pressed {
+        .submit-btn:active {
             transform: scale(0.97);
             backdrop-filter: blur(25px) saturate(200%);
             box-shadow: 
@@ -729,8 +694,7 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
-        /* Эффект для переключателей вью */
-        .toggle-option.pressed {
+        .toggle-option:active {
             transform: scale(0.96);
             backdrop-filter: blur(20px) saturate(190%);
             box-shadow: 
@@ -796,7 +760,7 @@
             backdrop-filter: blur(5px);
         }
 
-        .recent-skill:hover {
+        .recent-skill:active {
             background: rgba(6, 214, 160, 0.2);
             transform: translateY(-1px);
             box-shadow: 0 2px 5px rgba(6, 214, 160, 0.2);
@@ -832,7 +796,7 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
-        .show-completed-link:hover {
+        .show-completed-link:active {
             color: var(--text-secondary);
             opacity: 1;
         }
@@ -1029,14 +993,6 @@
         let allSkills = new Set();
         let recentSkillsList = [];
 
-        // Функция для добавления эффекта нажатия
-        function addPressEffect(element) {
-            element.classList.add('pressed');
-            setTimeout(() => {
-                element.classList.remove('pressed');
-            }, 300);
-        }
-
         // Load data from localStorage
         function loadData() {
             const savedTasks = localStorage.getItem('liquidTasks');
@@ -1154,12 +1110,6 @@
                     const taskId = this.getAttribute('data-id');
                     completeTask(taskId);
                 });
-                
-                // Добавляем обработчики для мобильных устройств
-                btn.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    addPressEffect(this);
-                });
             });
             
             // Add event listeners to delete buttons
@@ -1167,12 +1117,6 @@
                 btn.addEventListener('click', function() {
                     const taskId = this.getAttribute('data-id');
                     deleteTask(taskId);
-                });
-                
-                // Добавляем обработчики для мобильных устройств
-                btn.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    addPressEffect(this);
                 });
             });
         }
@@ -1456,12 +1400,6 @@
                     state.showCompleted = false;
                     renderTasks();
                 });
-                
-                // Добавляем обработчики для мобильных устройств
-                tab.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    addPressEffect(this);
-                });
             });
             
             // View toggles
@@ -1480,12 +1418,6 @@
                         document.querySelector('.skills-view').style.display = 'block';
                     }
                 });
-                
-                // Добавляем обработчики для мобильных устройств
-                toggle.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    addPressEffect(this);
-                });
             });
             
             // Add task button
@@ -1495,24 +1427,12 @@
                 renderRecentSkills();
             });
             
-            // Добавляем обработчики для мобильных устройств
-            addTaskBtn.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                addPressEffect(this);
-            });
-            
             // Close modal button
             closeModalBtn.addEventListener('click', function() {
                 taskModal.classList.remove('active');
                 selectedSkills = [];
                 renderSelectedSkills();
                 skillsSuggestions.style.display = 'none';
-            });
-            
-            // Добавляем обработчики для мобильных устройств
-            closeModalBtn.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                addPressEffect(this);
             });
             
             // Task form submission
@@ -1536,12 +1456,6 @@
             // Add skill button
             addSkillBtn.addEventListener('click', function() {
                 addSkillToTask(skillInput.value);
-            });
-            
-            // Добавляем обработчики для мобильных устройств
-            addSkillBtn.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                addPressEffect(this);
             });
             
             // Add skill on Enter key
@@ -1597,13 +1511,6 @@
                     e.preventDefault();
                     activeSuggestion.click();
                 }
-            });
-            
-            // Submit button
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                addPressEffect(this);
             });
         }
 
