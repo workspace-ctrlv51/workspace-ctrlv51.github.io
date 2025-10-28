@@ -993,31 +993,29 @@
 
         // Delete a task
         function deleteTask(taskId) {
-            if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
-                const taskIndex = state.tasks.findIndex(task => task.id === taskId);
-                if (taskIndex === -1) return;
-                
-                const task = state.tasks[taskIndex];
-                
-                // If the task was completed, remove skill points
-                if (task.completed) {
-                    task.skills.forEach(skill => {
-                        if (state.skills[skill] > 1) {
-                            state.skills[skill]--;
-                        } else {
-                            delete state.skills[skill];
-                        }
-                    });
-                }
-                
-                state.tasks.splice(taskIndex, 1);
-                saveData();
-                updateUI();
-                
-                // Add haptic feedback if available
-                if (tg?.HapticFeedback?.impactOccurred) {
-                    tg.HapticFeedback.impactOccurred('light');
-                }
+            const taskIndex = state.tasks.findIndex(task => task.id === taskId);
+            if (taskIndex === -1) return;
+            
+            const task = state.tasks[taskIndex];
+            
+            // If the task was completed, remove skill points
+            if (task.completed) {
+                task.skills.forEach(skill => {
+                    if (state.skills[skill] > 1) {
+                        state.skills[skill]--;
+                    } else {
+                        delete state.skills[skill];
+                    }
+                });
+            }
+            
+            state.tasks.splice(taskIndex, 1);
+            saveData();
+            updateUI();
+            
+            // Add haptic feedback if available
+            if (tg?.HapticFeedback?.impactOccurred) {
+                tg.HapticFeedback.impactOccurred('light');
             }
         }
 
