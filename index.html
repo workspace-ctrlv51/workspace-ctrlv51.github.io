@@ -34,11 +34,33 @@
             min-height: 100vh;
             padding: 16px;
             padding-bottom: 90px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Снежинки */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 8px;
+            animation: snowfall linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            user-select: none;
+        }
+
+        @keyframes snowfall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
         }
 
         .container {
             max-width: 500px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         .header {
@@ -59,7 +81,6 @@
             -webkit-text-fill-color: transparent;
             animation: liquidGradient 6s ease-in-out infinite;
             position: relative;
-            /* Убрано свечение текста */
         }
 
         @keyframes liquidGradient {
@@ -145,10 +166,11 @@
         }
 
         .category-tab.active {
-            background: rgba(99, 102, 241, 0.3);
-            border-color: rgba(99, 102, 241, 0.5);
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            /* Очень тонкий, еле заметный glow */
             box-shadow: 
-                0 0 15px rgba(99, 102, 241, 0.3),
+                0 0 3px rgba(99, 102, 241, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
@@ -157,9 +179,9 @@
             transform: scale(0.98);
             backdrop-filter: blur(25px) saturate(200%);
             box-shadow: 
-                0 0 25px rgba(139, 92, 246, 0.4),
+                0 0 8px rgba(139, 92, 246, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.15),
-                inset 0 0 15px rgba(255, 255, 255, 0.1);
+                inset 0 0 8px rgba(255, 255, 255, 0.05);
             transition: all 0.1s ease;
         }
 
@@ -666,9 +688,9 @@
         }
 
         .toggle-option.active {
-            background: rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.15);
             box-shadow: 
-                0 0 10px rgba(99, 102, 241, 0.2),
+                0 0 3px rgba(99, 102, 241, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
@@ -677,7 +699,7 @@
             transform: scale(0.96);
             backdrop-filter: blur(20px) saturate(190%);
             box-shadow: 
-                0 0 15px rgba(99, 102, 241, 0.3),
+                0 0 8px rgba(99, 102, 241, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.15),
                 inset 0 0 8px rgba(255, 255, 255, 0.08);
             transition: all 0.1s ease;
@@ -810,6 +832,8 @@
     </style>
 </head>
 <body>
+    <!-- Снежинки будут добавлены через JavaScript -->
+    
     <div class="container">
         <div class="header">
             <h1 class="app-title">Будешь спать или действовать?</h1>
@@ -907,6 +931,33 @@
         if (tg) {
             tg.ready();
             tg.expand();
+        }
+
+        // Создание снежинок
+        function createSnowflakes() {
+            const snowflakeContainer = document.body;
+            const snowflakeCount = 15; // Количество снежинок
+            
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = '❄';
+                
+                // Случайные параметры для каждой снежинки
+                const left = Math.random() * 100;
+                const size = Math.random() * 3 + 5; // Размер от 5px до 8px
+                const opacity = Math.random() * 0.3 + 0.1; // Прозрачность от 0.1 до 0.4
+                const duration = Math.random() * 20 + 20; // Длительность анимации от 20s до 40s
+                const delay = Math.random() * 20; // Задержка начала анимации
+                
+                snowflake.style.left = `${left}vw`;
+                snowflake.style.fontSize = `${size}px`;
+                snowflake.style.opacity = opacity;
+                snowflake.style.animationDuration = `${duration}s`;
+                snowflake.style.animationDelay = `${delay}s`;
+                
+                snowflakeContainer.appendChild(snowflake);
+            }
         }
 
         // App State
@@ -1469,6 +1520,7 @@
         function init() {
             loadData();
             initEventListeners();
+            createSnowflakes(); // Создаем снежинки при инициализации
         }
 
         // Start the app
