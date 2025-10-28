@@ -18,6 +18,7 @@
             --glass-border: rgba(255, 255, 255, 0.12);
             --text-primary: #F1F5F9;
             --text-secondary: #94A3B8;
+            --text-dim: #64748B;
         }
 
         * {
@@ -44,22 +45,38 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            padding: 16px 0;
+            margin-bottom: 20px;
+            padding: 12px 0;
         }
 
         .app-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            background: linear-gradient(90deg, 
+                #8B5CF6, #6366F1, #8B5CF6);
+            background-size: 200% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            animation: liquidGradient 6s ease-in-out infinite;
+            position: relative;
+        }
+
+        @keyframes liquidGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .stats {
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
         .stat-item {
@@ -67,29 +84,34 @@
             background: var(--glass);
             backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 12px;
+            border-radius: 14px;
+            padding: 10px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
 
         .category-tabs {
             display: flex;
             gap: 6px;
-            margin-bottom: 20px;
-            overflow-x: hidden;
-            padding-bottom: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 6px;
             justify-content: space-between;
+            scrollbar-width: none;
+        }
+
+        .category-tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .category-tab {
@@ -100,7 +122,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
-            font-size: 13px;
+            font-size: 12px;
             white-space: nowrap;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -115,16 +137,16 @@
         }
 
         .tasks-container {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .task-item {
             background: var(--glass);
             backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
@@ -156,6 +178,16 @@
             background: var(--danger);
         }
 
+        .task-item.completed {
+            opacity: 0.6;
+            transform: scale(0.98);
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            color: var(--text-dim);
+        }
+
         .task-header {
             display: flex;
             justify-content: space-between;
@@ -164,30 +196,33 @@
         }
 
         .task-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             flex: 1;
+            transition: all 0.2s ease;
+            line-height: 1.4;
         }
 
         .task-category {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 20px;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.1);
-            margin-left: 8px;
+            margin-left: 6px;
+            white-space: nowrap;
         }
 
         .task-skills {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 12px;
+            gap: 4px;
+            margin-bottom: 10px;
         }
 
         .skill-tag {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 12px;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 8px;
             background: rgba(99, 102, 241, 0.2);
             border: 1px solid rgba(99, 102, 241, 0.3);
         }
@@ -202,47 +237,91 @@
             background: var(--secondary);
             color: var(--dark);
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             padding: 8px 16px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
         .complete-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(6, 214, 160, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(6, 214, 160, 0.3);
+        }
+
+        .complete-btn.completed {
+            background: var(--text-dim);
+            color: var(--text-primary);
         }
 
         .skill-points {
-            font-size: 14px;
+            font-size: 12px;
             color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .task-controls {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            color: var(--text-dim);
+            border: none;
+            border-radius: 8px;
+            padding: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-item:hover .delete-btn {
+            opacity: 0.7;
+        }
+
+        .delete-btn:hover {
+            background: var(--danger);
+            color: white;
+            transform: scale(1.1);
+            opacity: 1;
         }
 
         .add-btn {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 60px;
-            height: 60px;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             border: none;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 22px;
             color: white;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
             transition: all 0.3s ease;
             z-index: 100;
         }
 
         .add-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 28px rgba(99, 102, 241, 0.5);
+            transform: scale(1.08);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
         }
 
         .modal {
@@ -270,14 +349,16 @@
 
         .modal-content {
             background: linear-gradient(135deg, #1E1E2E 0%, #25253A 100%);
-            border-radius: 20px;
-            padding: 24px;
+            border-radius: 18px;
+            padding: 20px;
             width: 100%;
             max-width: 400px;
             border: 1px solid var(--glass-border);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
             transform: translateY(20px);
             transition: transform 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .modal.active .modal-content {
@@ -288,11 +369,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .modal-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
         }
 
@@ -300,35 +381,35 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             position: relative;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 6px;
+            font-size: 13px;
             color: var(--text-secondary);
         }
 
         .form-input, .form-select {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 14px;
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
+            border-radius: 10px;
             color: var(--text-primary);
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .skills-input-container {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             position: relative;
         }
 
@@ -339,8 +420,8 @@
         .add-skill-btn {
             background: var(--primary);
             border: none;
-            border-radius: 12px;
-            padding: 0 16px;
+            border-radius: 10px;
+            padding: 0 14px;
             color: white;
             cursor: pointer;
         }
@@ -348,19 +429,19 @@
         .selected-skills {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
+            gap: 6px;
+            margin-top: 10px;
         }
 
         .selected-skill {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: rgba(99, 102, 241, 0.2);
             border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 12px;
-            padding: 6px 10px;
-            font-size: 14px;
+            border-radius: 10px;
+            padding: 5px 8px;
+            font-size: 12px;
         }
 
         .remove-skill {
@@ -368,37 +449,37 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .submit-btn {
             width: 100%;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             border: none;
-            border-radius: 12px;
-            padding: 14px;
+            border-radius: 10px;
+            padding: 12px;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 16px;
+            margin-top: 14px;
             transition: all 0.2s ease;
         }
 
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
         }
 
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 16px;
             color: var(--text-secondary);
         }
 
         .empty-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
+            font-size: 40px;
+            margin-bottom: 12px;
             opacity: 0.5;
         }
 
@@ -410,21 +491,21 @@
             background: var(--glass);
             backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .skill-name {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
         }
 
         .skill-level {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-secondary);
         }
 
@@ -433,18 +514,18 @@
             background: var(--glass);
             backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 20px;
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 16px;
         }
 
         .toggle-option {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.2s ease;
         }
 
@@ -461,18 +542,19 @@
             right: 0;
             background: var(--dark);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            max-height: 150px;
+            border-radius: 10px;
+            max-height: 130px;
             overflow-y: auto;
             z-index: 10;
             margin-top: 4px;
         }
 
         .skill-suggestion {
-            padding: 10px 12px;
+            padding: 8px 10px;
             cursor: pointer;
             border-bottom: 1px solid var(--glass-border);
             transition: background 0.2s ease;
+            font-size: 13px;
         }
 
         .skill-suggestion:hover, .skill-suggestion.highlight {
@@ -486,19 +568,19 @@
         .recent-skills {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 10px;
         }
 
         .recent-skill {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: rgba(6, 214, 160, 0.1);
             border: 1px solid rgba(6, 214, 160, 0.3);
-            border-radius: 12px;
-            padding: 6px 10px;
-            font-size: 12px;
+            border-radius: 10px;
+            padding: 5px 8px;
+            font-size: 11px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -513,13 +595,60 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             padding: 0;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        /* Стили для управления выполненными задачами */
+        .completed-toggle {
+            text-align: center;
+            margin-top: 12px;
+            padding: 8px;
+        }
+
+        .show-completed-link {
+            color: var(--text-dim);
+            font-size: 12px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+        }
+
+        .show-completed-link:hover {
+            color: var(--text-secondary);
+            opacity: 1;
+        }
+
+        /* Компактный вид для выполненных задач */
+        .task-item.compact {
+            padding: 10px 14px;
+            margin-bottom: 6px;
+        }
+
+        .task-item.compact .task-header {
+            margin-bottom: 4px;
+        }
+
+        .task-item.compact .task-title {
+            font-size: 14px;
+        }
+
+        .task-item.compact .task-skills {
+            margin-bottom: 6px;
+        }
+
+        .task-item.compact .task-actions {
+            justify-content: space-between;
+        }
+
+        .task-item.compact .complete-btn {
+            padding: 6px 12px;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -559,6 +688,10 @@
 
             <div class="tasks-container" id="tasks-container">
                 <!-- Tasks will be loaded here -->
+            </div>
+            
+            <div class="completed-toggle" id="completed-toggle" style="display: none;">
+                <a href="#" class="show-completed-link" id="show-completed-link"></a>
             </div>
         </div>
 
@@ -624,7 +757,9 @@
             tasks: [],
             skills: {},
             currentCategory: 'quick',
-            currentView: 'tasks'
+            currentView: 'tasks',
+            hideCompleted: true,
+            showCompleted: false
         };
 
         // DOM Elements
@@ -644,6 +779,8 @@
         const totalSkillsEl = document.getElementById('total-skills');
         const skillsSuggestions = document.getElementById('skills-suggestions');
         const recentSkills = document.getElementById('recent-skills');
+        const completedToggle = document.getElementById('completed-toggle');
+        const showCompletedLink = document.getElementById('show-completed-link');
 
         // Skills management
         let selectedSkills = [];
@@ -655,6 +792,7 @@
             const savedTasks = localStorage.getItem('liquidTasks');
             const savedSkills = localStorage.getItem('liquidSkills');
             const savedRecentSkills = localStorage.getItem('liquidRecentSkills');
+            const savedHideCompleted = localStorage.getItem('liquidHideCompleted');
             
             if (savedTasks) {
                 state.tasks = JSON.parse(savedTasks);
@@ -668,6 +806,10 @@
                 recentSkillsList = JSON.parse(savedRecentSkills);
             }
             
+            if (savedHideCompleted) {
+                state.hideCompleted = JSON.parse(savedHideCompleted);
+            }
+            
             updateUI();
         }
 
@@ -676,6 +818,7 @@
             localStorage.setItem('liquidTasks', JSON.stringify(state.tasks));
             localStorage.setItem('liquidSkills', JSON.stringify(state.skills));
             localStorage.setItem('liquidRecentSkills', JSON.stringify(recentSkillsList));
+            localStorage.setItem('liquidHideCompleted', JSON.stringify(state.hideCompleted));
         }
 
         // Update UI based on current state
@@ -698,23 +841,46 @@
 
         // Render tasks based on current category
         function renderTasks() {
-            const filteredTasks = state.tasks.filter(task => task.category === state.currentCategory);
+            let filteredTasks = state.tasks.filter(task => task.category === state.currentCategory);
+            const completedTasks = filteredTasks.filter(task => task.completed);
+            const activeTasks = filteredTasks.filter(task => !task.completed);
             
-            if (filteredTasks.length === 0) {
+            // Calculate completed count for current category
+            const completedCount = completedTasks.length;
+            
+            // Show or hide completed toggle based on completed tasks count
+            if (completedCount > 0) {
+                completedToggle.style.display = 'block';
+                if (state.showCompleted) {
+                    showCompletedLink.textContent = `Скрыть выполненные (${completedCount})`;
+                } else {
+                    showCompletedLink.textContent = `Показать выполненные (${completedCount})`;
+                }
+            } else {
+                completedToggle.style.display = 'none';
+            }
+            
+            // Determine which tasks to show
+            let tasksToShow = activeTasks;
+            if (state.showCompleted) {
+                tasksToShow = [...activeTasks, ...completedTasks];
+            }
+            
+            if (tasksToShow.length === 0) {
                 tasksContainer.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">📝</div>
-                        <p>Нет задач в этой категории</p>
+                        <p>${completedCount > 0 ? 'Нет активных задач' : 'Нет задач в этой категории'}</p>
                     </div>
                 `;
                 return;
             }
             
-            tasksContainer.innerHTML = filteredTasks.map(task => `
-                <div class="task-item ${task.category}" data-id="${task.id}">
+            tasksContainer.innerHTML = tasksToShow.map(task => `
+                <div class="task-item ${task.category} ${task.completed ? 'completed' : ''} ${state.showCompleted && task.completed ? 'compact' : ''}" data-id="${task.id}">
+                    <button class="delete-btn" data-id="${task.id}">✕</button>
                     <div class="task-header">
                         <div class="task-title">${task.title}</div>
-                        <div class="task-category">${getCategoryName(task.category)}</div>
                     </div>
                     ${task.skills.length > 0 ? `
                         <div class="task-skills">
@@ -724,10 +890,10 @@
                         </div>
                     ` : ''}
                     <div class="task-actions">
-                        <button class="complete-btn" data-id="${task.id}">
+                        <button class="complete-btn ${task.completed ? 'completed' : ''}" data-id="${task.id}">
                             ${task.completed ? '✓ Выполнено' : 'Выполнить'}
                         </button>
-                        <div class="skill-points">+${task.skills.length}</div>
+                        ${task.skills.length > 0 ? `<div class="skill-points">+${task.skills.length}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -737,6 +903,14 @@
                 btn.addEventListener('click', function() {
                     const taskId = this.getAttribute('data-id');
                     completeTask(taskId);
+                });
+            });
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-id');
+                    deleteTask(taskId);
                 });
             });
         }
@@ -815,6 +989,36 @@
             
             saveData();
             updateUI();
+        }
+
+        // Delete a task
+        function deleteTask(taskId) {
+            if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
+                const taskIndex = state.tasks.findIndex(task => task.id === taskId);
+                if (taskIndex === -1) return;
+                
+                const task = state.tasks[taskIndex];
+                
+                // If the task was completed, remove skill points
+                if (task.completed) {
+                    task.skills.forEach(skill => {
+                        if (state.skills[skill] > 1) {
+                            state.skills[skill]--;
+                        } else {
+                            delete state.skills[skill];
+                        }
+                    });
+                }
+                
+                state.tasks.splice(taskIndex, 1);
+                saveData();
+                updateUI();
+                
+                // Add haptic feedback if available
+                if (tg?.HapticFeedback?.impactOccurred) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            }
         }
 
         // Add a new task
@@ -967,6 +1171,12 @@
             });
         }
 
+        // Toggle show completed tasks
+        function toggleShowCompleted() {
+            state.showCompleted = !state.showCompleted;
+            renderTasks();
+        }
+
         // Initialize event listeners
         function initEventListeners() {
             // Category tabs
@@ -975,6 +1185,7 @@
                     categoryTabs.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                     state.currentCategory = this.getAttribute('data-category');
+                    state.showCompleted = false;
                     renderTasks();
                 });
             });
@@ -1053,6 +1264,12 @@
                 if (!e.target.closest('.skills-input-container')) {
                     skillsSuggestions.style.display = 'none';
                 }
+            });
+            
+            // Show completed toggle
+            showCompletedLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleShowCompleted();
             });
             
             // Keyboard navigation for suggestions
