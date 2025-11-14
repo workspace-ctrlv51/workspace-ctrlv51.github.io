@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мотивации НЕТ</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-light: #8B5CF6;
+            --secondary: #06D6A0;
+            --danger: #EF476F;
+            --warning: #FFD166;
+            --dark: #1E1E2E;
+            --light: #F8FAFC;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-dim: #64748B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            touch-action: manipulation;
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 50%, #16213E 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 90px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Оптимизированные снежинки для iOS */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 8px;
+            animation-name: snowfall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+            pointer-events: none;
+            z-index: 0;
+            user-select: none;
+            will-change: transform;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-perspective: 1000;
+            perspective: 1000;
+        }
+
+        @keyframes snowfall {
+            to {
+                transform: translate3d(0, 100vh, 0) rotate(360deg);
+            }
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 12px 0;
+        }
+
+        .app-title {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(90deg, 
+                #8B5CF6, #6366F1, #8B5CF6);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation-name: liquidGradient;
+            animation-duration: 6s;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            position: relative;
+        }
+
+        @keyframes liquidGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .stat-item {
+            flex: 1;
+            background: var(--glass);
+            backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.2),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 2px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            justify-content: space-between;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .category-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-tab {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 8px;
+            background: var(--glass);
+            backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-touch-callout: none;
+        }
+
+        .category-tab:focus {
+            outline: none;
+        }
+
+        .category-tab.active {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 
+                0 0 3px rgba(99, 102, 241, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* Оптимизированные анимации для iOS */
+        .category-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: left 0.5s ease;
+            will-change: left;
+        }
+
+        .category-tab:active::before {
+            left: 100%;
+        }
+
+        .category-tab:active {
+            transform: scale(0.98);
+            backdrop-filter: blur(25px) saturate(200%);
+            box-shadow: 
+                0 0 8px rgba(139, 92, 246, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 0 8px rgba(255, 255, 255, 0.05);
+            transition: all 0.1s ease;
+            -webkit-transform: scale(0.98) translateZ(0);
+            transform: scale(0.98) translateZ(0);
+        }
+
+        .tasks-container {
+            margin-bottom: 20px;
+        }
+
+        .task-item {
+            background: var(--glass);
+            backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.2),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .task-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .task-item.quick::before {
+            background: var(--secondary);
+            box-shadow: 0 0 10px rgba(6, 214, 160, 0.5);
+        }
+
+        .task-item.medium::before {
+            background: var(--warning);
+            box-shadow: 0 0 10px rgba(255, 209, 102, 0.5);
+        }
+
+        .task-item.large::before {
+            background: var(--primary);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .task-item.boss::before {
+            background: var(--danger);
+            box-shadow: 0 0 10px rgba(239, 71, 111, 0.5);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            transform: scale(0.98);
+            -webkit-transform: scale(0.98) translateZ(0);
+            transform: scale(0.98) translateZ(0);
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            color: var(--text-dim);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .task-title {
+            font-size: 15px;
+            font-weight: 600;
+            flex: 1;
+            transition: all 0.2s ease;
+            line-height: 1.4;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-category {
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-left: 6px;
+            white-space: nowrap;
+        }
+
+        .task-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .skill-tag {
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 8px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .task-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .complete-btn {
+            background: var(--secondary);
+            color: var(--dark);
+            border: none;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-touch-callout: none;
+        }
+
+        .complete-btn:hover {
+            transform: translateY(-1px);
+            -webkit-transform: translateY(-1px) translateZ(0);
+            transform: translateY(-1px) translateZ(0);
+            box-shadow: 
+                0 4px 8px rgba(6, 214, 160, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .complete-btn.completed {
+            background: var(--text-dim);
+            color: var(--text-primary);
+        }
+
+        .complete-btn:active {
+            transform: scale(0.95);
+            -webkit-transform: scale(0.95) translateZ(0);
+            transform: scale(0.95) translateZ(0);
+            backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: 
+                0 0 20px rgba(6, 214, 160, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 0 10px rgba(255, 255, 255, 0.1);
+            transition: all 0.1s ease;
+        }
+
+        .skill-points {
+            font-size: 12px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-controls {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            color: var(--text-dim);
+            border: none;
+            border-radius: 8px;
+            padding: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .task-item:hover .delete-btn {
+            opacity: 0.7;
+        }
+
+        .delete-btn:hover {
+            background: var(--danger);
+            color: white;
+            transform: scale(1.1);
+            -webkit-transform: scale(1.1) translateZ(0);
+            transform: scale(1.1) translateZ(0);
+            opacity: 1;
+            box-shadow: 0 0 10px rgba(239, 71, 111, 0.5);
+        }
+
+        .delete-btn:active {
+            transform: scale(0.9);
+            -webkit-transform: scale(0.9) translateZ(0);
+            transform: scale(0.9) translateZ(0);
+            backdrop-filter: blur(15px) saturate(200%);
+            box-shadow: 
+                0 0 15px rgba(239, 71, 111, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 0 8px rgba(255, 255, 255, 0.05);
+            transition: all 0.1s ease;
+        }
+
+        .add-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 
+                0 6px 20px rgba(99, 102, 241, 0.4),
+                0 0 15px rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
+            -webkit-touch-callout: none;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.08);
+            -webkit-transform: scale(1.08) translateZ(0);
+            transform: scale(1.08) translateZ(0);
+            box-shadow: 
+                0 8px 24px rgba(99, 102, 241, 0.5),
+                0 0 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .add-btn:active {
+            transform: scale(0.92);
+            -webkit-transform: scale(0.92) translateZ(0);
+            transform: scale(0.92) translateZ(0);
+            backdrop-filter: blur(30px) saturate(220%);
+            box-shadow: 
+                0 0 30px rgba(99, 102, 241, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25),
+                inset 0 0 20px rgba(255, 255, 255, 0.15);
+            transition: all 0.1s ease;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            will-change: opacity;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1E1E2E 0%, #25253A 100%);
+            border-radius: 18px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(99, 102, 241, 0.2);
+            transform: translate3d(0, 20px, 0);
+            transition: transform 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+            backdrop-filter: blur(20px) saturate(180%);
+            will-change: transform;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal.active .modal-content {
+            transform: translate3d(0, 0, 0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                inset 0 1px 3px rgba(0, 0, 0, 0.2),
+                0 1px 0 rgba(255, 255, 255, 0.05);
+            -webkit-appearance: none;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .skills-input-container {
+            display: flex;
+            gap: 6px;
+            position: relative;
+        }
+
+        .skills-input {
+            flex: 1;
+        }
+
+        .add-skill-btn {
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            padding: 0 14px;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-touch-callout: none;
+        }
+
+        .add-skill-btn:active {
+            transform: scale(0.94);
+            -webkit-transform: scale(0.94) translateZ(0);
+            transform: scale(0.94) translateZ(0);
+            backdrop-filter: blur(18px) saturate(180%);
+            box-shadow: 
+                0 0 12px rgba(99, 102, 241, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 0 6px rgba(255, 255, 255, 0.08);
+            transition: all 0.1s ease;
+        }
+
+        .selected-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .selected-skill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+            padding: 5px 8px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        .remove-skill {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
+            -webkit-touch-callout: none;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            -webkit-transform: translateY(-1px) translateZ(0);
+            transform: translateY(-1px) translateZ(0);
+            box-shadow: 
+                0 6px 16px rgba(99, 102, 241, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.97);
+            -webkit-transform: scale(0.97) translateZ(0);
+            transform: scale(0.97) translateZ(0);
+            backdrop-filter: blur(25px) saturate(200%);
+            box-shadow: 
+                0 0 25px rgba(99, 102, 241, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 0 15px rgba(255, 255, 255, 0.1);
+            transition: all 0.1s ease;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 16px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .skills-view {
+            display: none;
+        }
+
+        .skill-item {
+            background: var(--glass);
+            backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.2),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .skill-name {
+            font-size: 15px;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .skill-level {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--glass);
+            backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 16px;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-touch-callout: none;
+        }
+
+        .toggle-option.active {
+            background: rgba(99, 102, 241, 0.15);
+            box-shadow: 
+                0 0 3px rgba(99, 102, 241, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-option:active {
+            transform: scale(0.96);
+            -webkit-transform: scale(0.96) translateZ(0);
+            transform: scale(0.96) translateZ(0);
+            backdrop-filter: blur(20px) saturate(190%);
+            box-shadow: 
+                0 0 8px rgba(99, 102, 241, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 0 8px rgba(255, 255, 255, 0.08);
+            transition: all 0.1s ease;
+        }
+
+        .skills-suggestions {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            max-height: 130px;
+            overflow-y: auto;
+            z-index: 10;
+            margin-top: 4px;
+            backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: 
+                0 10px 15px -3px rgba(0, 0, 0, 0.3),
+                0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .skill-suggestion {
+            padding: 8px 10px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--glass-border);
+            transition: background 0.2s ease;
+            font-size: 13px;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .skill-suggestion:hover, .skill-suggestion.highlight {
+            background: var(--primary);
+        }
+
+        .skill-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .recent-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .recent-skill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(6, 214, 160, 0.1);
+            border: 1px solid rgba(6, 214, 160, 0.3);
+            border-radius: 10px;
+            padding: 5px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(5px);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .recent-skill:hover {
+            background: rgba(6, 214, 160, 0.2);
+            transform: translateY(-1px);
+            -webkit-transform: translateY(-1px) translateZ(0);
+            transform: translateY(-1px) translateZ(0);
+            box-shadow: 0 2px 5px rgba(6, 214, 160, 0.2);
+        }
+
+        .remove-recent-skill {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        .completed-toggle {
+            text-align: center;
+            margin-top: 12px;
+            padding: 8px;
+        }
+
+        .show-completed-link {
+            color: var(--text-dim);
+            font-size: 12px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .show-completed-link:hover {
+            color: var(--text-secondary);
+            opacity: 1;
+        }
+
+        .task-item.compact {
+            padding: 10px 14px;
+            margin-bottom: 6px;
+        }
+
+        .task-item.compact .task-header {
+            margin-bottom: 4px;
+        }
+
+        .task-item.compact .task-title {
+            font-size: 14px;
+        }
+
+        .task-item.compact .task-skills {
+            margin-bottom: 6px;
+        }
+
+        .task-item.compact .task-actions {
+            justify-content: space-between;
+        }
+
+        .task-item.compact .complete-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Оптимизация производительности для iOS */
+        @media screen and (max-width: 768px) {
+            .snowflake {
+                animation-duration: 20s !important;
+            }
+            
+            .task-item, .stat-item, .category-tab, .skill-item {
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                -webkit-perspective: 1000;
+                perspective: 1000;
+            }
+        }
+
+        /* Отключение анимаций для пользователей, которые предпочитают уменьшенное движение */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .snowflake {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Снежинки будут добавлены через JavaScript -->
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="app-title">Будешь спать или действовать?</h1>
+        </div>
+
+        <div class="view-toggle">
+            <div class="toggle-option active" data-view="tasks">Задачи</div>
+            <div class="toggle-option" data-view="skills">Навыки</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="total-tasks">0</div>
+                <div class="stat-label">Всего задач</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="completed-tasks">0</div>
+                <div class="stat-label">Выполнено</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total-skills">0</div>
+                <div class="stat-label">Навыков</div>
+            </div>
+        </div>
+
+        <div class="tasks-view">
+            <div class="category-tabs">
+                <div class="category-tab active" data-category="quick">Быстрые</div>
+                <div class="category-tab" data-category="medium">Средние</div>
+                <div class="category-tab" data-category="large">Большие</div>
+                <div class="category-tab" data-category="boss">Боссы</div>
+            </div>
+
+            <div class="tasks-container" id="tasks-container">
+                <!-- Tasks will be loaded here -->
+            </div>
+            
+            <div class="completed-toggle" id="completed-toggle" style="display: none;">
+                <a href="#" class="show-completed-link" id="show-completed-link"></a>
+            </div>
+        </div>
+
+        <div class="skills-view">
+            <div class="tasks-container" id="skills-container">
+                <!-- Skills will be loaded here -->
+            </div>
+        </div>
+
+        <button class="add-btn" id="add-task-btn">+</button>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Новая задача</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <form id="task-form">
+                <div class="form-group">
+                    <label class="form-label" for="task-title">Название задачи</label>
+                    <input type="text" id="task-title" class="form-input" placeholder="Что нужно сделать?" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Навыки</label>
+                    
+                    <!-- Ранее использованные навыки -->
+                    <div class="recent-skills" id="recent-skills">
+                        <!-- Recent skills will be loaded here -->
+                    </div>
+                    
+                    <!-- Поле ввода с автодополнением -->
+                    <div class="skills-input-container">
+                        <input type="text" id="skill-input" class="form-input skills-input" placeholder="Начните вводить навык...">
+                        <button type="button" class="add-skill-btn" id="add-skill-btn">+</button>
+                        <div class="skills-suggestions" id="skills-suggestions">
+                            <!-- Suggestions will appear here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Выбранные навыки -->
+                    <div class="selected-skills" id="selected-skills">
+                        <!-- Selected skills will appear here -->
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Добавить задачу</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // Оптимизированные снежинки для iOS
+        function createSnowflakes() {
+            const snowflakeContainer = document.body;
+            const snowflakeCount = 15; // Количество снежинок
+            
+            // Проверка предпочтений пользователя относительно анимации
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (prefersReducedMotion) return;
+            
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = '❄';
+                
+                // Случайные параметры для каждой снежинки
+                const left = Math.random() * 100;
+                const size = Math.random() * 3 + 5; // Размер от 5px до 8px
+                const opacity = Math.random() * 0.3 + 0.1; // Прозрачность от 0.1 до 0.4
+                const duration = Math.random() * 20 + 20; // Длительность анимации от 20s до 40s
+                const delay = Math.random() * 20; // Задержка начала анимации
+                
+                snowflake.style.left = `${left}vw`;
+                snowflake.style.fontSize = `${size}px`;
+                snowflake.style.opacity = opacity;
+                snowflake.style.animationDuration = `${duration}s`;
+                snowflake.style.animationDelay = `${delay}s`;
+                
+                snowflakeContainer.appendChild(snowflake);
+            }
+        }
+
+        // App State
+        let state = {
+            tasks: [],
+            skills: {},
+            currentCategory: 'quick',
+            currentView: 'tasks',
+            hideCompleted: true,
+            showCompleted: false
+        };
+
+        // DOM Elements
+        const tasksContainer = document.getElementById('tasks-container');
+        const skillsContainer = document.getElementById('skills-container');
+        const taskModal = document.getElementById('task-modal');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const closeModalBtn = document.getElementById('close-modal');
+        const taskForm = document.getElementById('task-form');
+        const categoryTabs = document.querySelectorAll('.category-tab');
+        const viewToggles = document.querySelectorAll('.toggle-option');
+        const addSkillBtn = document.getElementById('add-skill-btn');
+        const skillInput = document.getElementById('skill-input');
+        const selectedSkillsContainer = document.getElementById('selected-skills');
+        const totalTasksEl = document.getElementById('total-tasks');
+        const completedTasksEl = document.getElementById('completed-tasks');
+        const totalSkillsEl = document.getElementById('total-skills');
+        const skillsSuggestions = document.getElementById('skills-suggestions');
+        const recentSkills = document.getElementById('recent-skills');
+        const completedToggle = document.getElementById('completed-toggle');
+        const showCompletedLink = document.getElementById('show-completed-link');
+
+        // Skills management
+        let selectedSkills = [];
+        let allSkills = new Set();
+        let recentSkillsList = [];
+
+        // Load data from localStorage
+        function loadData() {
+            const savedTasks = localStorage.getItem('liquidTasks');
+            const savedSkills = localStorage.getItem('liquidSkills');
+            const savedRecentSkills = localStorage.getItem('liquidRecentSkills');
+            const savedHideCompleted = localStorage.getItem('liquidHideCompleted');
+            
+            if (savedTasks) {
+                state.tasks = JSON.parse(savedTasks);
+            }
+            
+            if (savedSkills) {
+                state.skills = JSON.parse(savedSkills);
+            }
+            
+            if (savedRecentSkills) {
+                recentSkillsList = JSON.parse(savedRecentSkills);
+            }
+            
+            if (savedHideCompleted) {
+                state.hideCompleted = JSON.parse(savedHideCompleted);
+            }
+            
+            updateUI();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('liquidTasks', JSON.stringify(state.tasks));
+            localStorage.setItem('liquidSkills', JSON.stringify(state.skills));
+            localStorage.setItem('liquidRecentSkills', JSON.stringify(recentSkillsList));
+            localStorage.setItem('liquidHideCompleted', JSON.stringify(state.hideCompleted));
+        }
+
+        // Update UI based on current state
+        function updateUI() {
+            renderTasks();
+            renderSkills();
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalTasks = state.tasks.length;
+            const completedTasks = state.tasks.filter(task => task.completed).length;
+            const totalSkills = Object.keys(state.skills).length;
+            
+            totalTasksEl.textContent = totalTasks;
+            completedTasksEl.textContent = completedTasks;
+            totalSkillsEl.textContent = totalSkills;
+        }
+
+        // Render tasks based on current category
+        function renderTasks() {
+            let filteredTasks = state.tasks.filter(task => task.category === state.currentCategory);
+            const completedTasks = filteredTasks.filter(task => task.completed);
+            const activeTasks = filteredTasks.filter(task => !task.completed);
+            
+            // Calculate completed count for current category
+            const completedCount = completedTasks.length;
+            
+            // Show or hide completed toggle based on completed tasks count
+            if (completedCount > 0) {
+                completedToggle.style.display = 'block';
+                if (state.showCompleted) {
+                    showCompletedLink.textContent = `Скрыть выполненные (${completedCount})`;
+                } else {
+                    showCompletedLink.textContent = `Показать выполненные (${completedCount})`;
+                }
+            } else {
+                completedToggle.style.display = 'none';
+            }
+            
+            // Determine which tasks to show
+            let tasksToShow = activeTasks;
+            if (state.showCompleted) {
+                tasksToShow = [...activeTasks, ...completedTasks];
+            }
+            
+            if (tasksToShow.length === 0) {
+                tasksContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <p>${completedCount > 0 ? 'Нет активных задач' : 'Нет задач в этой категории'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            tasksContainer.innerHTML = tasksToShow.map(task => `
+                <div class="task-item ${task.category} ${task.completed ? 'completed' : ''} ${state.showCompleted && task.completed ? 'compact' : ''}" data-id="${task.id}">
+                    <button class="delete-btn" data-id="${task.id}">✕</button>
+                    <div class="task-header">
+                        <div class="task-title">${task.title}</div>
+                    </div>
+                    ${task.skills.length > 0 ? `
+                        <div class="task-skills">
+                            ${task.skills.map(skill => `
+                                <div class="skill-tag">${skill}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="task-actions">
+                        <button class="complete-btn ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+                            ${task.completed ? '✓ Выполнено' : 'Выполнить'}
+                        </button>
+                        ${task.skills.length > 0 ? `<div class="skill-points">+${task.skills.length}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add event listeners to complete buttons
+            document.querySelectorAll('.complete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-id');
+                    completeTask(taskId);
+                });
+            });
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-id');
+                    deleteTask(taskId);
+                });
+            });
+        }
+
+        // Render skills
+        function renderSkills() {
+            const skills = Object.entries(state.skills);
+            
+            if (skills.length === 0) {
+                skillsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎯</div>
+                        <p>Навыки появятся после выполнения задач</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            skillsContainer.innerHTML = skills.map(([skill, level]) => `
+                <div class="skill-item">
+                    <div class="skill-name">${skill}</div>
+                    <div class="skill-level">Уровень: ${level}</div>
+                </div>
+            `).join('');
+        }
+
+        // Get category name for display
+        function getCategoryName(category) {
+            const names = {
+                'quick': 'Быстрая',
+                'medium': 'Средняя',
+                'large': 'Большая',
+                'boss': 'Босс'
+            };
+            return names[category] || category;
+        }
+
+        // Complete a task
+        function completeTask(taskId) {
+            const taskIndex = state.tasks.findIndex(task => task.id === taskId);
+            if (taskIndex === -1) return;
+            
+            const task = state.tasks[taskIndex];
+            
+            if (task.completed) {
+                // If already completed, mark as incomplete and remove skill points
+                task.completed = false;
+                task.skills.forEach(skill => {
+                    if (state.skills[skill] > 1) {
+                        state.skills[skill]--;
+                    } else {
+                        delete state.skills[skill];
+                    }
+                });
+                
+                // Тактильный отклик при отмене выполнения (легкий)
+                if (tg?.HapticFeedback?.impactOccurred) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            } else {
+                // Mark as completed and add skill points
+                task.completed = true;
+                task.skills.forEach(skill => {
+                    state.skills[skill] = (state.skills[skill] || 0) + 1;
+                    
+                    // Add to recent skills if not already there
+                    if (!recentSkillsList.includes(skill)) {
+                        recentSkillsList.unshift(skill);
+                        // Keep only last 10 skills
+                        if (recentSkillsList.length > 10) {
+                            recentSkillsList.pop();
+                        }
+                    }
+                });
+                
+                // Тактильный отклик при выполнении (успех)
+                if (tg?.HapticFeedback?.impactOccurred) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+                if (tg?.HapticFeedback?.notificationOccurred) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+            }
+            
+            saveData();
+            updateUI();
+        }
+
+        // Delete a task
+        function deleteTask(taskId) {
+            const taskIndex = state.tasks.findIndex(task => task.id === taskId);
+            if (taskIndex === -1) return;
+            
+            const task = state.tasks[taskIndex];
+            
+            // If the task was completed, remove skill points
+            if (task.completed) {
+                task.skills.forEach(skill => {
+                    if (state.skills[skill] > 1) {
+                        state.skills[skill]--;
+                    } else {
+                        delete state.skills[skill];
+                    }
+                });
+            }
+            
+            state.tasks.splice(taskIndex, 1);
+            saveData();
+            updateUI();
+            
+            // Add haptic feedback if available
+            if (tg?.HapticFeedback?.impactOccurred) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+
+        // Add a new task
+        function addTask(title, category, skills) {
+            const newTask = {
+                id: Date.now().toString(),
+                title,
+                category,
+                skills,
+                completed: false
+            };
+            
+            state.tasks.unshift(newTask);
+            saveData();
+            updateUI();
+        }
+
+        // Load all existing skills from tasks
+        function loadAllSkills() {
+            allSkills.clear();
+            state.tasks.forEach(task => {
+                task.skills.forEach(skill => allSkills.add(skill));
+            });
+        }
+
+        // Update skills suggestions based on input
+        function updateSkillsSuggestions() {
+            const inputValue = skillInput.value.toLowerCase().trim();
+            
+            if (inputValue.length === 0) {
+                skillsSuggestions.style.display = 'none';
+                return;
+            }
+            
+            // Filter skills that match input and not already selected
+            const matchingSkills = Array.from(allSkills).filter(skill => 
+                skill.toLowerCase().includes(inputValue) && 
+                !selectedSkills.includes(skill)
+            );
+            
+            if (matchingSkills.length === 0) {
+                skillsSuggestions.style.display = 'none';
+                return;
+            }
+            
+            skillsSuggestions.innerHTML = matchingSkills.map(skill => `
+                <div class="skill-suggestion" data-skill="${skill}">
+                    ${skill}
+                </div>
+            `).join('');
+            
+            skillsSuggestions.style.display = 'block';
+            
+            // Add event listeners to suggestions
+            document.querySelectorAll('.skill-suggestion').forEach(suggestion => {
+                suggestion.addEventListener('click', function() {
+                    addSkillToTask(this.getAttribute('data-skill'));
+                    skillsSuggestions.style.display = 'none';
+                    skillInput.value = '';
+                });
+            });
+        }
+
+        // Render recent skills
+        function renderRecentSkills() {
+            if (recentSkillsList.length === 0) {
+                recentSkills.innerHTML = '';
+                return;
+            }
+            
+            recentSkills.innerHTML = recentSkillsList
+                .filter(skill => !selectedSkills.includes(skill))
+                .map(skill => `
+                    <div class="recent-skill">
+                        <span>${skill}</span>
+                        <button class="remove-recent-skill" data-skill="${skill}">&times;</button>
+                    </div>
+                `).join('');
+            
+            // Add event listeners to recent skills
+            document.querySelectorAll('.recent-skill').forEach(skillEl => {
+                skillEl.addEventListener('click', function(e) {
+                    // Don't trigger if the remove button was clicked
+                    if (!e.target.classList.contains('remove-recent-skill')) {
+                        addSkillToTask(this.querySelector('span').textContent);
+                    }
+                });
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-recent-skill').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const skillToRemove = this.getAttribute('data-skill');
+                    removeRecentSkill(skillToRemove);
+                });
+            });
+        }
+
+        // Remove a skill from recent list
+        function removeRecentSkill(skill) {
+            recentSkillsList = recentSkillsList.filter(s => s !== skill);
+            saveData();
+            renderRecentSkills();
+        }
+
+        // Add a skill to the current task
+        function addSkillToTask(skillName) {
+            if (!skillName.trim()) return;
+            
+            const normalizedSkill = skillName.trim().toLowerCase();
+            
+            if (!selectedSkills.includes(normalizedSkill)) {
+                selectedSkills.push(normalizedSkill);
+                renderSelectedSkills();
+                
+                // Add to all skills set
+                allSkills.add(normalizedSkill);
+                
+                // Update recent skills display
+                renderRecentSkills();
+            }
+            
+            skillInput.value = '';
+            skillsSuggestions.style.display = 'none';
+        }
+
+        // Remove a skill from the current task
+        function removeSkillFromTask(skillName) {
+            selectedSkills = selectedSkills.filter(skill => skill !== skillName);
+            renderSelectedSkills();
+            renderRecentSkills();
+        }
+
+        // Render selected skills in the modal
+        function renderSelectedSkills() {
+            selectedSkillsContainer.innerHTML = selectedSkills.map(skill => `
+                <div class="selected-skill">
+                    <span>${skill}</span>
+                    <button type="button" class="remove-skill" data-skill="${skill}">&times;</button>
+                </div>
+            `).join('');
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-skill').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const skillToRemove = this.getAttribute('data-skill');
+                    removeSkillFromTask(skillToRemove);
+                });
+            });
+        }
+
+        // Toggle show completed tasks
+        function toggleShowCompleted() {
+            state.showCompleted = !state.showCompleted;
+            renderTasks();
+        }
+
+        // Initialize event listeners
+        function initEventListeners() {
+            // Category tabs
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    state.currentCategory = this.getAttribute('data-category');
+                    state.showCompleted = false;
+                    renderTasks();
+                });
+            });
+            
+            // View toggles
+            viewToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    viewToggles.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    state.currentView = this.getAttribute('data-view');
+                    
+                    if (state.currentView === 'tasks') {
+                        document.querySelector('.tasks-view').style.display = 'block';
+                        document.querySelector('.skills-view').style.display = 'none';
+                    } else {
+                        document.querySelector('.tasks-view').style.display = 'none';
+                        document.querySelector('.skills-view').style.display = 'block';
+                    }
+                });
+            });
+            
+            // Add task button
+            addTaskBtn.addEventListener('click', function() {
+                taskModal.classList.add('active');
+                loadAllSkills();
+                renderRecentSkills();
+            });
+            
+            // Close modal button
+            closeModalBtn.addEventListener('click', function() {
+                taskModal.classList.remove('active');
+                selectedSkills = [];
+                renderSelectedSkills();
+                skillsSuggestions.style.display = 'none';
+            });
+            
+            // Task form submission
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('task-title').value;
+                
+                if (!title.trim()) return;
+                
+                // Use current category for the new task
+                addTask(title, state.currentCategory, [...selectedSkills]);
+                
+                // Reset form
+                taskForm.reset();
+                selectedSkills = [];
+                renderSelectedSkills();
+                taskModal.classList.remove('active');
+            });
+            
+            // Add skill button
+            addSkillBtn.addEventListener('click', function() {
+                addSkillToTask(skillInput.value);
+            });
+            
+            // Add skill on Enter key
+            skillInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSkillToTask(this.value);
+                }
+            });
+            
+            // Update suggestions on input
+            skillInput.addEventListener('input', function() {
+                updateSkillsSuggestions();
+            });
+            
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.skills-input-container')) {
+                    skillsSuggestions.style.display = 'none';
+                }
+            });
+            
+            // Show completed toggle
+            showCompletedLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleShowCompleted();
+            });
+            
+            // Keyboard navigation for suggestions
+            skillInput.addEventListener('keydown', function(e) {
+                const suggestions = document.querySelectorAll('.skill-suggestion');
+                const activeSuggestion = document.querySelector('.skill-suggestion.highlight');
+                
+                if (e.key === 'ArrowDown' && suggestions.length > 0) {
+                    e.preventDefault();
+                    if (activeSuggestion) {
+                        const next = activeSuggestion.nextElementSibling;
+                        activeSuggestion.classList.remove('highlight');
+                        if (next) next.classList.add('highlight');
+                    } else {
+                        suggestions[0].classList.add('highlight');
+                    }
+                } else if (e.key === 'ArrowUp' && suggestions.length > 0) {
+                    e.preventDefault();
+                    if (activeSuggestion) {
+                        const prev = activeSuggestion.previousElementSibling;
+                        activeSuggestion.classList.remove('highlight');
+                        if (prev) prev.classList.add('highlight');
+                    } else {
+                        suggestions[suggestions.length - 1].classList.add('highlight');
+                    }
+                } else if (e.key === 'Enter' && activeSuggestion) {
+                    e.preventDefault();
+                    activeSuggestion.click();
+                }
+            });
+        }
+
+        // Initialize the app
+        function init() {
+            loadData();
+            initEventListeners();
+            createSnowflakes(); // Создаем снежинки при инициализации
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
