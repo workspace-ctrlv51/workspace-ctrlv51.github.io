@@ -161,6 +161,8 @@
             background-color: #f9f9f9;
             color: #333;
             font-size: 16px;
+            -webkit-user-select: text;
+            user-select: text;
         }
         
         .buttons-group {
@@ -451,17 +453,17 @@
         
         <div class="setting-group">
             <label for="min-range">Минимальное число:</label>
-            <input type="number" id="min-range" value="0" min="0">
+            <input type="number" id="min-range" value="0" min="0" inputmode="numeric" enterkeyhint="done">
         </div>
         
         <div class="setting-group">
             <label for="max-range">Максимальное число:</label>
-            <input type="number" id="max-range" value="10" min="1">
+            <input type="number" id="max-range" value="10" min="1" inputmode="numeric" enterkeyhint="done">
         </div>
         
         <div class="setting-group">
             <label for="max-clicks">Максимум нажатий:</label>
-            <input type="number" id="max-clicks" value="100" min="1">
+            <input type="number" id="max-clicks" value="100" min="1" inputmode="numeric" enterkeyhint="done">
         </div>
         
         <div class="buttons-group">
@@ -530,6 +532,17 @@
         let maxRange = 10;
         let numberStats = {}; // Статистика по числам {число: количество}
         
+        // Функция для виброотклика через Telegram Web App API
+        function triggerHapticFeedback() {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                // Используем официальное API Telegram для вибрации
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            } else if (navigator.vibrate) {
+                // Fallback для браузеров, поддерживающих Vibration API
+                navigator.vibrate(50);
+            }
+        }
+        
         // Загрузка сохраненных данных
         function loadData() {
             const savedClickCount = localStorage.getItem('clickCount');
@@ -572,10 +585,8 @@
         function generateNumber() {
             if (clickCount >= maxClicks) return;
             
-            // Виброотклик
-            if (navigator.vibrate) {
-                navigator.vibrate([10, 5, 10]);
-            }
+            // Виброотклик через Telegram API
+            triggerHapticFeedback();
             
             // Генерация числа
             const randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
@@ -771,6 +782,26 @@
             maxRangeInput.addEventListener('change', updateSettings);
             maxClicksInput.addEventListener('change', updateSettings);
             
+            // Обработчики для удобного ввода в настройках
+            const inputs = [minRangeInput, maxRangeInput, maxClicksInput];
+            
+            // Закрытие клавиатуры при нажатии Enter
+            inputs.forEach(input => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        this.blur(); // Скрываем клавиатуру
+                    }
+                });
+            });
+            
+            // Закрытие клавиатуры при клике вне поля ввода
+            document.addEventListener('click', function(e) {
+                if (!e.target.matches('input')) {
+                    // Если клик не по полю ввода, скрываем клавиатуру
+                    document.activeElement.blur();
+                }
+            });
+            
             // Предотвращение масштабирования при двойном тапе
             document.addEventListener('dblclick', function(e) {
                 e.preventDefault();
@@ -778,7 +809,9 @@
             
             // Предотвращение выделения текста
             document.addEventListener('selectstart', function(e) {
-                e.preventDefault();
+                if (!e.target.matches('input')) {
+                    e.preventDefault();
+                }
             });
         }
         
