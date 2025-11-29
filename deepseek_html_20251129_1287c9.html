@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор чисел</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Главная страница */
+        #main-page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #number-display {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 40px 0;
+            height: 100px;
+            color: #000;
+            transition: transform 0.2s;
+        }
+        
+        #generate-btn {
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 180px;
+            height: 180px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            font-weight: 600;
+        }
+        
+        #generate-btn:hover {
+            background-color: #333;
+            transform: scale(1.05);
+        }
+        
+        #generate-btn:active {
+            transform: scale(0.95);
+        }
+        
+        #generate-btn:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Невидимые области для управления */
+        #bottom-left-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        #bottom-right-area {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        /* Страница настроек */
+        #settings-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            padding: 24px;
+            display: none;
+            flex-direction: column;
+            z-index: 20;
+            overflow-y: auto;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        #close-settings {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+        
+        .setting-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            flex: 1;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            background-color: #333;
+        }
+        
+        #reset-btn {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        #reset-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        #session-info {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #666;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        /* Страница статистики */
+        #stats-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: none;
+            flex-direction: column;
+            z-index: 20;
+            overflow: hidden;
+        }
+        
+        .stats-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            z-index: 25;
+        }
+        
+        #stats-close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 80px 20px 40px;
+        }
+        
+        .chart-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+        
+        .y-axis {
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-bottom: 20px;
+            margin-right: 10px;
+        }
+        
+        .y-label {
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+            padding-right: 5px;
+        }
+        
+        .chart-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .grid-line {
+            width: 100%;
+            height: 1px;
+            background: repeating-linear-gradient(
+                to right,
+                #e0e0e0,
+                #e0e0e0 4px,
+                transparent 4px,
+                transparent 8px
+            );
+        }
+        
+        #stats-chart {
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            max-width: 50px;
+            background-color: #000;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: height 0.5s ease;
+        }
+        
+        .chart-labels {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+        
+        .chart-label {
+            flex: 1;
+            max-width: 50px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Анимация для появления числа */
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .pop-animation {
+            animation: pop 0.3s ease-out;
+        }
+        
+        /* Мобильная адаптация */
+        @media (max-width: 480px) {
+            #number-display {
+                font-size: 64px;
+                margin: 30px 0;
+            }
+            
+            #generate-btn {
+                width: 160px;
+                height: 160px;
+            }
+            
+            .chart-container {
+                padding: 70px 15px 30px;
+            }
+            
+            #stats-chart {
+                gap: 8px;
+            }
+            
+            .chart-bar {
+                max-width: 35px;
+            }
+            
+            .chart-labels {
+                gap: 8px;
+            }
+            
+            .chart-label {
+                max-width: 35px;
+                font-size: 12px;
+            }
+            
+            .y-axis {
+                width: 30px;
+            }
+            
+            .y-label {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Главная страница -->
+    <div id="main-page">
+        <div id="number-display">0</div>
+        <button id="generate-btn">НАЖМИ</button>
+        
+        <!-- Невидимые области управления -->
+        <div id="bottom-left-area"></div>
+        <div id="bottom-right-area"></div>
+    </div>
+    
+    <!-- Страница настроек -->
+    <div id="settings-page">
+        <div class="page-header">
+            <div class="page-title">Настройки</div>
+            <button id="close-settings">✕</button>
+        </div>
+        
+        <div class="setting-group">
+            <label for="min-range">Минимальное число:</label>
+            <input type="number" id="min-range" value="0" min="0">
+        </div>
+        
+        <div class="setting-group">
+            <label for="max-range">Максимальное число:</label>
+            <input type="number" id="max-range" value="10" min="1">
+        </div>
+        
+        <div class="setting-group">
+            <label for="max-clicks">Максимум нажатий:</label>
+            <input type="number" id="max-clicks" value="100" min="1">
+        </div>
+        
+        <div class="buttons-group">
+            <button id="reset-btn" class="btn">Сбросить сессию</button>
+            <button id="save-btn" class="btn">Сохранить</button>
+        </div>
+        
+        <div id="session-info">
+            Текущая сессия: <span id="session-clicks">0</span> нажатий
+        </div>
+    </div>
+    
+    <!-- Страница статистики -->
+    <div id="stats-page">
+        <div class="stats-header">
+            <button id="stats-close-btn">✕</button>
+        </div>
+        <div class="chart-container">
+            <div class="chart-content">
+                <div class="y-axis" id="y-axis">
+                    <!-- Легенда будет создана динамически -->
+                </div>
+                <div class="chart-main">
+                    <div class="grid-lines" id="grid-lines">
+                        <!-- Линии сетки будут созданы динамически -->
+                    </div>
+                    <div id="stats-chart">
+                        <!-- График будет создан динамически -->
+                    </div>
+                    <div id="chart-labels" class="chart-labels">
+                        <!-- Легенда будет создана динамически -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Элементы DOM
+        const mainPage = document.getElementById('main-page');
+        const numberDisplay = document.getElementById('number-display');
+        const generateBtn = document.getElementById('generate-btn');
+        const bottomLeftArea = document.getElementById('bottom-left-area');
+        const bottomRightArea = document.getElementById('bottom-right-area');
+        
+        const settingsPage = document.getElementById('settings-page');
+        const closeSettings = document.getElementById('close-settings');
+        const minRangeInput = document.getElementById('min-range');
+        const maxRangeInput = document.getElementById('max-range');
+        const maxClicksInput = document.getElementById('max-clicks');
+        const resetBtn = document.getElementById('reset-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const sessionClicksSpan = document.getElementById('session-clicks');
+        
+        const statsPage = document.getElementById('stats-page');
+        const statsCloseBtn = document.getElementById('stats-close-btn');
+        const statsChart = document.getElementById('stats-chart');
+        const chartLabels = document.getElementById('chart-labels');
+        const yAxis = document.getElementById('y-axis');
+        const gridLines = document.getElementById('grid-lines');
+        
+        // Переменные состояния
+        let clickCount = 0;
+        let maxClicks = 100;
+        let minRange = 0;
+        let maxRange = 10;
+        let numberStats = {}; // Статистика по числам {число: количество}
+        
+        // Загрузка сохраненных данных
+        function loadData() {
+            const savedClickCount = localStorage.getItem('clickCount');
+            const savedMaxClicks = localStorage.getItem('maxClicks');
+            const savedMinRange = localStorage.getItem('minRange');
+            const savedMaxRange = localStorage.getItem('maxRange');
+            const savedNumberStats = localStorage.getItem('numberStats');
+            
+            if (savedClickCount) clickCount = parseInt(savedClickCount);
+            if (savedMaxClicks) maxClicks = parseInt(savedMaxClicks);
+            if (savedMinRange) minRange = parseInt(savedMinRange);
+            if (savedMaxRange) maxRange = parseInt(savedMaxRange);
+            if (savedNumberStats) numberStats = JSON.parse(savedNumberStats);
+            
+            // Обновление UI
+            sessionClicksSpan.textContent = clickCount;
+            maxClicksInput.value = maxClicks;
+            minRangeInput.value = minRange;
+            maxRangeInput.value = maxRange;
+            
+            // Проверка лимита нажатий
+            if (clickCount >= maxClicks) {
+                generateBtn.disabled = true;
+            }
+            
+            // Обновление статистики
+            updateStatsDisplay();
+        }
+        
+        // Сохранение данных
+        function saveData() {
+            localStorage.setItem('clickCount', clickCount);
+            localStorage.setItem('maxClicks', maxClicks);
+            localStorage.setItem('minRange', minRange);
+            localStorage.setItem('maxRange', maxRange);
+            localStorage.setItem('numberStats', JSON.stringify(numberStats));
+        }
+        
+        // Генерация случайного числа
+        function generateNumber() {
+            if (clickCount >= maxClicks) return;
+            
+            // Виброотклик
+            if (navigator.vibrate) {
+                navigator.vibrate([10, 5, 10]);
+            }
+            
+            // Генерация числа
+            const randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+            
+            // Анимация появления числа
+            numberDisplay.classList.remove('pop-animation');
+            void numberDisplay.offsetWidth; // Сброс анимации
+            numberDisplay.textContent = randomNum;
+            numberDisplay.classList.add('pop-animation');
+            
+            // Обновление статистики
+            if (numberStats[randomNum]) {
+                numberStats[randomNum]++;
+            } else {
+                numberStats[randomNum] = 1;
+            }
+            
+            // Увеличение счетчика
+            clickCount++;
+            sessionClicksSpan.textContent = clickCount;
+            
+            // Проверка лимита
+            if (clickCount >= maxClicks) {
+                generateBtn.disabled = true;
+            }
+            
+            saveData();
+            updateStatsDisplay();
+        }
+        
+        // Сброс сессии
+        function resetSession() {
+            clickCount = 0;
+            numberStats = {};
+            numberDisplay.textContent = 0;
+            sessionClicksSpan.textContent = clickCount;
+            generateBtn.disabled = false;
+            saveData();
+            updateStatsDisplay();
+        }
+        
+        // Обновление настроек
+        function updateSettings() {
+            maxClicks = parseInt(maxClicksInput.value) || 100;
+            minRange = parseInt(minRangeInput.value) || 0;
+            maxRange = parseInt(maxRangeInput.value) || 10;
+            
+            // Корректировка диапазона
+            if (minRange > maxRange) {
+                maxRange = minRange + 1;
+                maxRangeInput.value = maxRange;
+            }
+            
+            // Проверка лимита нажатий
+            if (clickCount >= maxClicks) {
+                generateBtn.disabled = true;
+            } else {
+                generateBtn.disabled = false;
+            }
+            
+            saveData();
+            updateStatsDisplay();
+        }
+        
+        // Открытие настроек
+        function openSettings() {
+            settingsPage.style.display = 'flex';
+            mainPage.style.display = 'none';
+        }
+        
+        // Закрытие настроек
+        function closeSettingsPanel() {
+            settingsPage.style.display = 'none';
+            mainPage.style.display = 'flex';
+        }
+        
+        // Открытие статистики
+        function openStats() {
+            updateStatsDisplay();
+            statsPage.style.display = 'flex';
+            mainPage.style.display = 'none';
+        }
+        
+        // Закрытие статистики
+        function closeStatsPanel() {
+            statsPage.style.display = 'none';
+            mainPage.style.display = 'flex';
+        }
+        
+        // Обновление отображения статистики
+        function updateStatsDisplay() {
+            // Очистка графика и легенды
+            statsChart.innerHTML = '';
+            chartLabels.innerHTML = '';
+            yAxis.innerHTML = '';
+            gridLines.innerHTML = '';
+            
+            // Создание графика и легенды
+            if (Object.keys(numberStats).length > 0) {
+                const maxValue = Math.max(...Object.values(numberStats));
+                
+                // Создание легенды для оси Y
+                const step = Math.max(1, Math.ceil(maxValue / 4));
+                const yValues = [];
+                
+                for (let i = 0; i <= maxValue; i += step) {
+                    yValues.push(i);
+                }
+                
+                // Если последнее значение не совпадает с maxValue, добавляем maxValue
+                if (yValues[yValues.length - 1] !== maxValue) {
+                    yValues.push(maxValue);
+                }
+                
+                // Создание подписей оси Y
+                yValues.reverse().forEach(value => {
+                    const yLabel = document.createElement('div');
+                    yLabel.className = 'y-label';
+                    yLabel.textContent = value;
+                    yAxis.appendChild(yLabel);
+                });
+                
+                // Создание линий сетки
+                yValues.forEach(() => {
+                    const gridLine = document.createElement('div');
+                    gridLine.className = 'grid-line';
+                    gridLines.appendChild(gridLine);
+                });
+                
+                // Создание столбцов графика
+                for (let i = minRange; i <= maxRange; i++) {
+                    const count = numberStats[i] || 0;
+                    const height = maxValue > 0 ? (count / maxValue) * 90 : 5;
+                    
+                    // Создание столбца графика
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-bar';
+                    bar.style.height = `${height}%`;
+                    
+                    statsChart.appendChild(bar);
+                    
+                    // Создание подписи для легенды
+                    const label = document.createElement('div');
+                    label.className = 'chart-label';
+                    label.textContent = i;
+                    chartLabels.appendChild(label);
+                }
+            } else {
+                // Если статистики нет, показываем пустой график
+                // Создание легенды для оси Y
+                const yLabel = document.createElement('div');
+                yLabel.className = 'y-label';
+                yLabel.textContent = '0';
+                yAxis.appendChild(yLabel);
+                
+                // Создание линий сетки
+                for (let i = 0; i < 5; i++) {
+                    const gridLine = document.createElement('div');
+                    gridLine.className = 'grid-line';
+                    gridLines.appendChild(gridLine);
+                }
+                
+                // Пустые столбцы
+                for (let i = minRange; i <= maxRange; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-bar';
+                    bar.style.height = '5%';
+                    statsChart.appendChild(bar);
+                    
+                    const label = document.createElement('div');
+                    label.className = 'chart-label';
+                    label.textContent = i;
+                    chartLabels.appendChild(label);
+                }
+            }
+        }
+        
+        // Инициализация
+        function init() {
+            loadData();
+            
+            // Обработчики событий
+            generateBtn.addEventListener('click', generateNumber);
+            bottomLeftArea.addEventListener('click', openStats);
+            bottomRightArea.addEventListener('click', openSettings);
+            closeSettings.addEventListener('click', closeSettingsPanel);
+            statsCloseBtn.addEventListener('click', closeStatsPanel);
+            resetBtn.addEventListener('click', resetSession);
+            saveBtn.addEventListener('click', closeSettingsPanel);
+            
+            // Сохранение настроек при изменении
+            minRangeInput.addEventListener('change', updateSettings);
+            maxRangeInput.addEventListener('change', updateSettings);
+            maxClicksInput.addEventListener('change', updateSettings);
+        }
+        
+        // Запуск приложения
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
