@@ -534,11 +534,17 @@
         
         // Функция для виброотклика через Telegram Web App API
         function triggerHapticFeedback() {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-                // Используем официальное API Telegram для вибрации
-                window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-            } else if (navigator.vibrate) {
-                // Fallback для браузеров, поддерживающих Vibration API
+            // Используем официальное API Telegram для вибрации
+            if (window.Telegram && window.Telegram.WebApp) {
+                // Если доступен Telegram Web App API
+                if (window.Telegram.WebApp.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+                } else if (window.Telegram.WebApp.vibrate) {
+                    window.Telegram.WebApp.vibrate();
+                }
+            } 
+            // Fallback для браузеров и других платформ
+            else if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
         }
@@ -585,7 +591,7 @@
         function generateNumber() {
             if (clickCount >= maxClicks) return;
             
-            // Виброотклик через Telegram API
+            // Виброотклик через Telegram API или fallback
             triggerHapticFeedback();
             
             // Генерация числа
@@ -611,6 +617,8 @@
             // Проверка лимита
             if (clickCount >= maxClicks) {
                 generateBtn.disabled = true;
+                // Виброотклик при достижении лимита
+                setTimeout(triggerHapticFeedback, 100);
             }
             
             saveData();
@@ -626,6 +634,9 @@
             generateBtn.disabled = false;
             saveData();
             updateStatsDisplay();
+            
+            // Виброотклик при сбросе
+            triggerHapticFeedback();
         }
         
         // Обновление настроек
@@ -655,12 +666,18 @@
         function openSettings() {
             settingsPage.style.display = 'flex';
             mainPage.style.display = 'none';
+            
+            // Виброотклик при открытии настроек
+            triggerHapticFeedback();
         }
         
         // Закрытие настроек
         function closeSettingsPanel() {
             settingsPage.style.display = 'none';
             mainPage.style.display = 'flex';
+            
+            // Виброотклик при закрытии настроек
+            triggerHapticFeedback();
         }
         
         // Открытие статистики
@@ -668,12 +685,18 @@
             updateStatsDisplay();
             statsPage.style.display = 'flex';
             mainPage.style.display = 'none';
+            
+            // Виброотклик при открытии статистики
+            triggerHapticFeedback();
         }
         
         // Закрытие статистики
         function closeStatsPanel() {
             statsPage.style.display = 'none';
             mainPage.style.display = 'flex';
+            
+            // Виброотклик при закрытии статистики
+            triggerHapticFeedback();
         }
         
         // Обновление отображения статистики
