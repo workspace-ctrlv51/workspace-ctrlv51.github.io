@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Генератор чисел</title>
     <style>
         * {
@@ -16,7 +16,7 @@
             user-select: none;
         }
         
-        html, body {
+        html {
             height: 100%;
             overflow: hidden;
         }
@@ -24,7 +24,10 @@
         body {
             background-color: #f5f5f5;
             color: #333;
+            width: 100vw;
             height: 100vh;
+            height: 100dvh;
+            max-height: -webkit-fill-available;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -32,6 +35,7 @@
             padding: 20px;
             position: relative;
             touch-action: manipulation;
+            overflow: hidden;
         }
         
         /* Главная страница */
@@ -42,6 +46,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
         
         #number-display {
@@ -50,7 +55,10 @@
             margin: 30px 0;
             height: 80px;
             color: #000;
-            transition: transform 0.2s;
+            text-align: center;
+            transform: translateZ(0);
+            will-change: transform, opacity;
+            backface-visibility: hidden;
         }
         
         #generate-btn {
@@ -62,18 +70,23 @@
             height: 150px;
             font-size: 20px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             font-weight: 600;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transform: translateZ(0);
+            will-change: transform, background-color;
+            backface-visibility: hidden;
         }
         
         #generate-btn:hover {
             background-color: #333;
-            transform: scale(1.05);
+            transform: scale(1.05) translateZ(0);
         }
         
         #generate-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.95) translateZ(0);
         }
         
         #generate-btn:disabled {
@@ -83,7 +96,7 @@
             box-shadow: none;
         }
         
-        /* Невидимые области для управления */
+        /* Невидимые области для управления - СОВЕРШЕННО НЕВИДИМЫЕ */
         #bottom-left-area {
             position: absolute;
             bottom: 0;
@@ -92,6 +105,8 @@
             height: 70px;
             cursor: pointer;
             z-index: 10;
+            opacity: 0;
+            background-color: transparent;
         }
         
         #bottom-right-area {
@@ -102,6 +117,8 @@
             height: 70px;
             cursor: pointer;
             z-index: 10;
+            opacity: 0;
+            background-color: transparent;
         }
         
         /* Страница настроек */
@@ -111,12 +128,15 @@
             left: 0;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             background-color: white;
-            padding: 20px;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
             display: none;
             flex-direction: column;
-            z-index: 20;
+            z-index: 100;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            transform: translateZ(0);
         }
         
         .page-header {
@@ -124,8 +144,13 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
+            padding-top: env(safe-area-inset-top);
             padding-bottom: 15px;
             border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
         }
         
         .page-title {
@@ -136,10 +161,17 @@
         #close-settings {
             background: none;
             border: none;
-            font-size: 22px;
+            font-size: 28px;
             cursor: pointer;
             color: #666;
-            padding: 5px;
+            padding: 8px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            transform: translateZ(0);
         }
         
         .setting-group {
@@ -163,12 +195,20 @@
             font-size: 16px;
             -webkit-user-select: text;
             user-select: text;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #000;
         }
         
         .buttons-group {
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            padding-bottom: env(safe-area-inset-bottom);
         }
         
         .btn {
@@ -177,15 +217,24 @@
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 12px 15px;
+            padding: 14px 15px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 16px;
             font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            transform: translateZ(0);
+            will-change: transform, background-color;
         }
         
         .btn:hover {
             background-color: #333;
+            transform: translateY(-1px) translateZ(0);
+        }
+        
+        .btn:active {
+            transform: translateY(0) translateZ(0);
         }
         
         #reset-btn {
@@ -205,6 +254,7 @@
             padding: 15px;
             background-color: #f9f9f9;
             border-radius: 8px;
+            margin-bottom: env(safe-area-inset-bottom);
         }
         
         /* Страница статистики */
@@ -214,11 +264,13 @@
             left: 0;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             background-color: white;
             display: none;
             flex-direction: column;
-            z-index: 20;
+            z-index: 100;
             overflow: hidden;
+            transform: translateZ(0);
         }
         
         .stats-header {
@@ -229,23 +281,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            padding: calc(15px + env(safe-area-inset-top)) 20px 15px;
             z-index: 25;
+            background: white;
         }
         
         #stats-close-btn {
             background: none;
             border: none;
-            font-size: 22px;
+            font-size: 28px;
             cursor: pointer;
             color: #666;
-            padding: 5px;
-            width: 40px;
-            height: 40px;
+            padding: 8px;
+            width: 44px;
+            height: 44px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
+            -webkit-tap-highlight-color: transparent;
+            transform: translateZ(0);
         }
         
         .chart-container {
@@ -255,7 +310,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 70px 15px 30px;
+            padding: calc(70px + env(safe-area-inset-top)) 15px calc(30px + env(safe-area-inset-bottom));
         }
         
         .chart-content {
@@ -326,7 +381,9 @@
             background-color: #000;
             border-radius: 3px 3px 0 0;
             position: relative;
-            transition: height 0.5s ease;
+            transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: translateZ(0);
+            will-change: height;
         }
         
         .chart-labels {
@@ -345,15 +402,38 @@
             color: #666;
         }
         
-        /* Анимация для появления числа */
+        /* Анимация для появления числа - 120 Гц оптимизация */
         @keyframes pop {
-            0% { transform: scale(0.8); opacity: 0; }
-            70% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
+            0% { 
+                transform: scale(0.8) translateZ(0); 
+                opacity: 0; 
+            }
+            70% { 
+                transform: scale(1.1) translateZ(0); 
+            }
+            100% { 
+                transform: scale(1) translateZ(0); 
+                opacity: 1; 
+            }
         }
         
         .pop-animation {
-            animation: pop 0.3s ease-out;
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: transform, opacity;
+        }
+        
+        /* Стили для Telegram Web App */
+        .telegram-fullscreen {
+            height: 100vh !important;
+            height: 100dvh !important;
+            max-height: 100% !important;
+        }
+        
+        /* Плавные анимации для 120 Гц */
+        .smooth-transition {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
         
         /* Мобильная адаптация */
@@ -370,7 +450,7 @@
             }
             
             .chart-container {
-                padding: 60px 10px 20px;
+                padding: calc(60px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom));
             }
             
             .chart-content {
@@ -412,7 +492,7 @@
             }
             
             #close-settings, #stats-close-btn {
-                font-size: 20px;
+                font-size: 24px;
             }
         }
         
@@ -431,6 +511,27 @@
                 height: 60%;
             }
         }
+        
+        /* Исправление для iOS Safari */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                height: -webkit-fill-available;
+            }
+            #settings-page, #stats-page {
+                height: -webkit-fill-available;
+            }
+        }
+        
+        /* Анимация нажатия для 120 Гц */
+        @keyframes buttonPress {
+            0% { transform: scale(1) translateZ(0); }
+            50% { transform: scale(0.95) translateZ(0); }
+            100% { transform: scale(1) translateZ(0); }
+        }
+        
+        .button-press {
+            animation: buttonPress 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
     </style>
 </head>
 <body>
@@ -439,7 +540,7 @@
         <div id="number-display">0</div>
         <button id="generate-btn">НАЖМИ</button>
         
-        <!-- Невидимые области управления -->
+        <!-- НЕВИДИМЫЕ области управления -->
         <div id="bottom-left-area"></div>
         <div id="bottom-right-area"></div>
     </div>
@@ -530,23 +631,85 @@
         let maxClicks = 100;
         let minRange = 0;
         let maxRange = 10;
-        let numberStats = {}; // Статистика по числам {число: количество}
+        let numberStats = {};
         
-        // Функция для виброотклика через Telegram Web App API
-        function triggerHapticFeedback() {
-            // Используем официальное API Telegram для вибрации
+        // Инициализация Telegram Web App
+        function initTelegramWebApp() {
             if (window.Telegram && window.Telegram.WebApp) {
-                // Если доступен Telegram Web App API
-                if (window.Telegram.WebApp.HapticFeedback) {
-                    window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-                } else if (window.Telegram.WebApp.vibrate) {
-                    window.Telegram.WebApp.vibrate();
-                }
-            } 
-            // Fallback для браузеров и других платформ
-            else if (navigator.vibrate) {
-                navigator.vibrate(50);
+                const tg = window.Telegram.WebApp;
+                
+                // Расширяем на весь экран
+                tg.expand();
+                
+                // Обработка изменения viewport
+                tg.onEvent('viewportChanged', handleViewportChange);
+                
+                // Устанавливаем цвет фона
+                tg.setBackgroundColor('#f5f5f5');
+                
+                // Включаем кнопку "Назад" в Telegram
+                tg.BackButton.show();
+                tg.BackButton.onClick(handleTelegramBack);
+                
+                // Добавляем класс для стилей Telegram
+                document.body.classList.add('telegram-fullscreen');
             }
+        }
+        
+        // Функция для виброотклика ТОЛЬКО через Telegram Web App API
+        function triggerHapticFeedback() {
+            // ИСПРАВЛЕНО: Только Telegram вибрация
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                // Используем официальное API Telegram для тактильной отдачи
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+            }
+            // НЕТ fallback для браузеров - только Telegram!
+        }
+        
+        // Обработка изменения размера viewport
+        function handleViewportChange() {
+            // Принудительный рефлоу для всех страниц
+            [mainPage, settingsPage, statsPage].forEach(page => {
+                if (page) {
+                    page.style.display = 'none';
+                    void page.offsetWidth;
+                    if (page === mainPage) {
+                        page.style.display = 'flex';
+                    }
+                }
+            });
+            
+            // Обновляем график если он открыт
+            if (statsPage.style.display === 'flex') {
+                setTimeout(updateStatsDisplay, 50);
+            }
+            
+            // Обновляем высоту body
+            updateBodyHeight();
+        }
+        
+        // Обработка кнопки "Назад" в Telegram
+        function handleTelegramBack() {
+            if (settingsPage.style.display === 'flex') {
+                closeSettingsPanel();
+            } else if (statsPage.style.display === 'flex') {
+                closeStatsPanel();
+            } else {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.close();
+                }
+            }
+        }
+        
+        // Обновление высоты body с учетом safe areas
+        function updateBodyHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+            
+            // Принудительное обновление layout
+            document.body.style.height = '100vh';
+            void document.body.offsetWidth;
+            document.body.style.height = '100dvh';
         }
         
         // Загрузка сохраненных данных
@@ -587,19 +750,24 @@
             localStorage.setItem('numberStats', JSON.stringify(numberStats));
         }
         
-        // Генерация случайного числа
+        // Генерация случайного числа с анимацией 120 Гц
         function generateNumber() {
             if (clickCount >= maxClicks) return;
             
-            // Виброотклик через Telegram API или fallback
+            // Виброотклик ТОЛЬКО через Telegram API
             triggerHapticFeedback();
+            
+            // Анимация кнопки
+            generateBtn.classList.remove('button-press');
+            void generateBtn.offsetWidth;
+            generateBtn.classList.add('button-press');
             
             // Генерация числа
             const randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
             
-            // Анимация появления числа
+            // Анимация появления числа (120 Гц оптимизация)
             numberDisplay.classList.remove('pop-animation');
-            void numberDisplay.offsetWidth; // Сброс анимации
+            void numberDisplay.offsetWidth;
             numberDisplay.textContent = randomNum;
             numberDisplay.classList.add('pop-animation');
             
@@ -623,6 +791,12 @@
             
             saveData();
             updateStatsDisplay();
+            
+            // Использование requestAnimationFrame для 120 Гц
+            requestAnimationFrame(() => {
+                // Дополнительные плавные обновления
+                updateStatsDisplay();
+            });
         }
         
         // Сброс сессии
@@ -635,7 +809,7 @@
             saveData();
             updateStatsDisplay();
             
-            // Виброотклик при сбросе
+            // Виброотклик ТОЛЬКО через Telegram API
             triggerHapticFeedback();
         }
         
@@ -667,17 +841,28 @@
             settingsPage.style.display = 'flex';
             mainPage.style.display = 'none';
             
-            // Виброотклик при открытии настроек
+            // Виброотклик ТОЛЬКО через Telegram API
             triggerHapticFeedback();
+            
+            // Принудительный рефлоу для корректного отображения
+            requestAnimationFrame(() => {
+                void settingsPage.offsetWidth;
+            });
         }
         
         // Закрытие настроек
         function closeSettingsPanel() {
+            updateSettings();
             settingsPage.style.display = 'none';
             mainPage.style.display = 'flex';
             
-            // Виброотклик при закрытии настроек
+            // Виброотклик ТОЛЬКО через Telegram API
             triggerHapticFeedback();
+            
+            // Принудительный рефлоу
+            requestAnimationFrame(() => {
+                void mainPage.offsetWidth;
+            });
         }
         
         // Открытие статистики
@@ -686,8 +871,13 @@
             statsPage.style.display = 'flex';
             mainPage.style.display = 'none';
             
-            // Виброотклик при открытии статистики
+            // Виброотклик ТОЛЬКО через Telegram API
             triggerHapticFeedback();
+            
+            // Принудительный рефлоу
+            requestAnimationFrame(() => {
+                void statsPage.offsetWidth;
+            });
         }
         
         // Закрытие статистики
@@ -695,140 +885,218 @@
             statsPage.style.display = 'none';
             mainPage.style.display = 'flex';
             
-            // Виброотклик при закрытии статистики
+            // Виброотклик ТОЛЬКО через Telegram API
             triggerHapticFeedback();
+            
+            // Принудительный рефлоу
+            requestAnimationFrame(() => {
+                void mainPage.offsetWidth;
+            });
         }
         
-        // Обновление отображения статистики
+        // Обновление отображения статистики с 120 Гц оптимизацией
         function updateStatsDisplay() {
-            // Очистка графика и легенды
-            statsChart.innerHTML = '';
-            chartLabels.innerHTML = '';
-            yAxis.innerHTML = '';
-            gridLines.innerHTML = '';
-            
-            // Создание графика и легенды
-            if (Object.keys(numberStats).length > 0) {
-                const maxValue = Math.max(...Object.values(numberStats));
+            // Используем requestAnimationFrame для плавности
+            requestAnimationFrame(() => {
+                statsChart.innerHTML = '';
+                chartLabels.innerHTML = '';
+                yAxis.innerHTML = '';
+                gridLines.innerHTML = '';
                 
-                // Создание легенды для оси Y
-                const step = Math.max(1, Math.ceil(maxValue / 4));
-                const yValues = [];
-                
-                for (let i = 0; i <= maxValue; i += step) {
-                    yValues.push(i);
-                }
-                
-                // Если последнее значение не совпадает с maxValue, добавляем maxValue
-                if (yValues[yValues.length - 1] !== maxValue) {
-                    yValues.push(maxValue);
-                }
-                
-                // Создание подписей оси Y
-                yValues.reverse().forEach(value => {
+                if (Object.keys(numberStats).length > 0) {
+                    const maxValue = Math.max(...Object.values(numberStats));
+                    
+                    // Создание легенды для оси Y
+                    const step = Math.max(1, Math.ceil(maxValue / 4));
+                    const yValues = [];
+                    
+                    for (let i = 0; i <= maxValue; i += step) {
+                        yValues.push(i);
+                    }
+                    
+                    if (yValues[yValues.length - 1] !== maxValue) {
+                        yValues.push(maxValue);
+                    }
+                    
+                    yValues.reverse().forEach(value => {
+                        const yLabel = document.createElement('div');
+                        yLabel.className = 'y-label';
+                        yLabel.textContent = value;
+                        yAxis.appendChild(yLabel);
+                    });
+                    
+                    yValues.forEach(() => {
+                        const gridLine = document.createElement('div');
+                        gridLine.className = 'grid-line';
+                        gridLines.appendChild(gridLine);
+                    });
+                    
+                    // Создание столбцов с анимацией
+                    for (let i = minRange; i <= maxRange; i++) {
+                        const count = numberStats[i] || 0;
+                        const height = maxValue > 0 ? (count / maxValue) * 70 + 10 : 10;
+                        
+                        const bar = document.createElement('div');
+                        bar.className = 'chart-bar';
+                        bar.style.height = '10%'; // Начальная высота
+                        
+                        // Анимируем до нужной высоты в следующем кадре
+                        requestAnimationFrame(() => {
+                            bar.style.height = `${height}%`;
+                        });
+                        
+                        statsChart.appendChild(bar);
+                        
+                        const label = document.createElement('div');
+                        label.className = 'chart-label';
+                        label.textContent = i;
+                        chartLabels.appendChild(label);
+                    }
+                } else {
+                    // Если статистики нет, показываем пустой график
                     const yLabel = document.createElement('div');
                     yLabel.className = 'y-label';
-                    yLabel.textContent = value;
+                    yLabel.textContent = '0';
                     yAxis.appendChild(yLabel);
+                    
+                    for (let i = 0; i < 5; i++) {
+                        const gridLine = document.createElement('div');
+                        gridLine.className = 'grid-line';
+                        gridLines.appendChild(gridLine);
+                    }
+                    
+                    for (let i = minRange; i <= maxRange; i++) {
+                        const bar = document.createElement('div');
+                        bar.className = 'chart-bar';
+                        bar.style.height = '10%';
+                        statsChart.appendChild(bar);
+                        
+                        const label = document.createElement('div');
+                        label.className = 'chart-label';
+                        label.textContent = i;
+                        chartLabels.appendChild(label);
+                    }
+                }
+            });
+        }
+        
+        // Обработчик изменения ориентации экрана
+        function handleOrientationChange() {
+            setTimeout(() => {
+                updateBodyHeight();
+                
+                if (statsPage.style.display === 'flex') {
+                    updateStatsDisplay();
+                }
+                
+                // Принудительный рефлоу для всех видимых страниц
+                requestAnimationFrame(() => {
+                    if (settingsPage.style.display === 'flex') {
+                        void settingsPage.offsetWidth;
+                    }
+                    if (statsPage.style.display === 'flex') {
+                        void statsPage.offsetWidth;
+                    }
+                    if (mainPage.style.display === 'flex') {
+                        void mainPage.offsetWidth;
+                    }
                 });
-                
-                // Создание линий сетки
-                yValues.forEach(() => {
-                    const gridLine = document.createElement('div');
-                    gridLine.className = 'grid-line';
-                    gridLines.appendChild(gridLine);
-                });
-                
-                // Создание столбцов графика
-                for (let i = minRange; i <= maxRange; i++) {
-                    const count = numberStats[i] || 0;
-                    const height = maxValue > 0 ? (count / maxValue) * 70 + 10 : 10;
-                    
-                    // Создание столбца графика
-                    const bar = document.createElement('div');
-                    bar.className = 'chart-bar';
-                    bar.style.height = `${height}%`;
-                    
-                    statsChart.appendChild(bar);
-                    
-                    // Создание подписи для легенды
-                    const label = document.createElement('div');
-                    label.className = 'chart-label';
-                    label.textContent = i;
-                    chartLabels.appendChild(label);
-                }
-            } else {
-                // Если статистики нет, показываем пустой график
-                // Создание легенды для оси Y
-                const yLabel = document.createElement('div');
-                yLabel.className = 'y-label';
-                yLabel.textContent = '0';
-                yAxis.appendChild(yLabel);
-                
-                // Создание линий сетки
-                for (let i = 0; i < 5; i++) {
-                    const gridLine = document.createElement('div');
-                    gridLine.className = 'grid-line';
-                    gridLines.appendChild(gridLine);
-                }
-                
-                // Пустые столбцы
-                for (let i = minRange; i <= maxRange; i++) {
-                    const bar = document.createElement('div');
-                    bar.className = 'chart-bar';
-                    bar.style.height = '10%';
-                    statsChart.appendChild(bar);
-                    
-                    const label = document.createElement('div');
-                    label.className = 'chart-label';
-                    label.textContent = i;
-                    chartLabels.appendChild(label);
-                }
+            }, 300);
+        }
+        
+        // Обработчик изменения размера окна
+        function handleResize() {
+            updateBodyHeight();
+            
+            if (statsPage.style.display === 'flex') {
+                setTimeout(updateStatsDisplay, 50);
             }
+            
+            // Дебаунс для предотвращения частых обновлений
+            clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(() => {
+                requestAnimationFrame(() => {
+                    [mainPage, settingsPage, statsPage].forEach(page => {
+                        if (page.style.display === 'flex') {
+                            void page.offsetWidth;
+                        }
+                    });
+                });
+            }, 100);
         }
         
         // Инициализация
         function init() {
+            // Инициализация Telegram Web App
+            initTelegramWebApp();
+            
+            // Загрузка данных
             loadData();
             
-            // Обработчики событий
-            generateBtn.addEventListener('click', generateNumber);
-            bottomLeftArea.addEventListener('click', openStats);
-            bottomRightArea.addEventListener('click', openSettings);
-            closeSettings.addEventListener('click', closeSettingsPanel);
-            statsCloseBtn.addEventListener('click', closeStatsPanel);
-            resetBtn.addEventListener('click', resetSession);
-            saveBtn.addEventListener('click', closeSettingsPanel);
+            // Обновляем высоту body при загрузке
+            updateBodyHeight();
             
-            // Сохранение настроек при изменении
-            minRangeInput.addEventListener('change', updateSettings);
-            maxRangeInput.addEventListener('change', updateSettings);
-            maxClicksInput.addEventListener('change', updateSettings);
+            // Обработчики событий с requestAnimationFrame для плавности
+            generateBtn.addEventListener('click', () => {
+                requestAnimationFrame(generateNumber);
+            });
             
-            // Обработчики для удобного ввода в настройках
+            bottomLeftArea.addEventListener('click', () => {
+                requestAnimationFrame(openStats);
+            });
+            
+            bottomRightArea.addEventListener('click', () => {
+                requestAnimationFrame(openSettings);
+            });
+            
+            closeSettings.addEventListener('click', () => {
+                requestAnimationFrame(closeSettingsPanel);
+            });
+            
+            statsCloseBtn.addEventListener('click', () => {
+                requestAnimationFrame(closeStatsPanel);
+            });
+            
+            resetBtn.addEventListener('click', () => {
+                requestAnimationFrame(resetSession);
+            });
+            
+            saveBtn.addEventListener('click', () => {
+                requestAnimationFrame(closeSettingsPanel);
+            });
+            
+            // Обработчики настроек
+            const updateSettingsDebounced = () => {
+                requestAnimationFrame(updateSettings);
+            };
+            
+            minRangeInput.addEventListener('change', updateSettingsDebounced);
+            maxRangeInput.addEventListener('change', updateSettingsDebounced);
+            maxClicksInput.addEventListener('change', updateSettingsDebounced);
+            
+            // Обработчики для удобного ввода
             const inputs = [minRangeInput, maxRangeInput, maxClicksInput];
-            
-            // Закрытие клавиатуры при нажатии Enter
             inputs.forEach(input => {
                 input.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
-                        this.blur(); // Скрываем клавиатуру
+                        this.blur();
                     }
+                });
+                
+                // Для iOS - скрываем клавиатуру при потере фокуса
+                input.addEventListener('blur', function() {
+                    window.scrollTo(0, 0);
                 });
             });
             
-            // Закрытие клавиатуры при клике вне поля ввода
-            document.addEventListener('click', function(e) {
-                if (!e.target.matches('input')) {
-                    // Если клик не по полю ввода, скрываем клавиатуру
-                    document.activeElement.blur();
-                }
-            });
+            // Обработчики глобальных событий
+            window.addEventListener('resize', handleResize);
+            window.addEventListener('orientationchange', handleOrientationChange);
             
             // Предотвращение масштабирования при двойном тапе
             document.addEventListener('dblclick', function(e) {
                 e.preventDefault();
-            });
+            }, { passive: false });
             
             // Предотвращение выделения текста
             document.addEventListener('selectstart', function(e) {
@@ -836,10 +1104,42 @@
                     e.preventDefault();
                 }
             });
+            
+            // Обработка касаний для улучшения отзывчивости
+            document.addEventListener('touchstart', function() {}, { passive: true });
+            document.addEventListener('touchmove', function(e) {
+                if (e.target.matches('input')) return;
+                e.preventDefault();
+            }, { passive: false });
+            
+            // Принудительный рефлоу после загрузки для 120 Гц
+            requestAnimationFrame(() => {
+                void document.body.offsetWidth;
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.ready();
+                }
+            });
         }
         
         // Запуск приложения
-        document.addEventListener('DOMContentLoaded', init);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+        
+        // Дополнительный обработчик для полной загрузки
+        window.addEventListener('load', function() {
+            updateBodyHeight();
+            setTimeout(updateBodyHeight, 100);
+            setTimeout(updateBodyHeight, 500);
+        });
+        
+        // Оптимизация для 120 Гц дисплеев
+        if (window.matchMedia('(min-width: 1200px)').matches || 
+            window.matchMedia('(min-resolution: 120dpi)').matches) {
+            document.body.classList.add('smooth-transition');
+        }
     </script>
 </body>
 </html>
