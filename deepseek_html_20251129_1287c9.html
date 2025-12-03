@@ -57,8 +57,10 @@
             color: #000;
             text-align: center;
             transform: translateZ(0);
-            will-change: transform, opacity;
+            -webkit-transform: translateZ(0);
             backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            will-change: transform, opacity;
         }
         
         #generate-btn {
@@ -70,23 +72,21 @@
             height: 150px;
             font-size: 20px;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             font-weight: 600;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
             transform: translateZ(0);
-            will-change: transform, background-color;
+            -webkit-transform: translateZ(0);
             backface-visibility: hidden;
-        }
-        
-        #generate-btn:hover {
-            background-color: #333;
-            transform: scale(1.05) translateZ(0);
+            -webkit-backface-visibility: hidden;
+            will-change: transform, background-color;
         }
         
         #generate-btn:active {
             transform: scale(0.95) translateZ(0);
+            -webkit-transform: scale(0.95) translateZ(0);
         }
         
         #generate-btn:disabled {
@@ -96,7 +96,7 @@
             box-shadow: none;
         }
         
-        /* Невидимые области для управления - СОВЕРШЕННО НЕВИДИМЫЕ */
+        /* Невидимые области для управления */
         #bottom-left-area {
             position: absolute;
             bottom: 0;
@@ -137,6 +137,7 @@
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             transform: translateZ(0);
+            -webkit-transform: translateZ(0);
         }
         
         .page-header {
@@ -172,6 +173,7 @@
             justify-content: center;
             -webkit-tap-highlight-color: transparent;
             transform: translateZ(0);
+            -webkit-transform: translateZ(0);
         }
         
         .setting-group {
@@ -219,22 +221,17 @@
             border-radius: 8px;
             padding: 14px 15px;
             cursor: pointer;
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 0.2s;
             font-size: 16px;
             font-weight: 500;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
             transform: translateZ(0);
-            will-change: transform, background-color;
-        }
-        
-        .btn:hover {
-            background-color: #333;
-            transform: translateY(-1px) translateZ(0);
+            -webkit-transform: translateZ(0);
         }
         
         .btn:active {
-            transform: translateY(0) translateZ(0);
+            background-color: #333;
         }
         
         #reset-btn {
@@ -242,7 +239,7 @@
             color: #333;
         }
         
-        #reset-btn:hover {
+        #reset-btn:active {
             background-color: #e0e0e0;
         }
         
@@ -271,6 +268,7 @@
             z-index: 100;
             overflow: hidden;
             transform: translateZ(0);
+            -webkit-transform: translateZ(0);
         }
         
         .stats-header {
@@ -279,7 +277,7 @@
             left: 0;
             width: 100%;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             padding: calc(15px + env(safe-area-inset-top)) 20px 15px;
             z-index: 25;
@@ -301,6 +299,7 @@
             font-weight: bold;
             -webkit-tap-highlight-color: transparent;
             transform: translateZ(0);
+            -webkit-transform: translateZ(0);
         }
         
         .chart-container {
@@ -381,9 +380,13 @@
             background-color: #000;
             border-radius: 3px 3px 0 0;
             position: relative;
-            transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform: translateZ(0);
-            will-change: height;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: bottom;
+            transform: translateZ(0) scaleY(0.1);
+            -webkit-transform: translateZ(0) scaleY(0.1);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            will-change: transform;
         }
         
         .chart-labels {
@@ -402,17 +405,16 @@
             color: #666;
         }
         
-        /* Анимация для появления числа - 120 Гц оптимизация */
+        /* Анимация для появления числа - оптимизирована для iOS */
         @keyframes pop {
             0% { 
-                transform: scale(0.8) translateZ(0); 
+                transform: scale(0.8) translateZ(0);
+                -webkit-transform: scale(0.8) translateZ(0);
                 opacity: 0; 
             }
-            70% { 
-                transform: scale(1.1) translateZ(0); 
-            }
             100% { 
-                transform: scale(1) translateZ(0); 
+                transform: scale(1) translateZ(0);
+                -webkit-transform: scale(1) translateZ(0);
                 opacity: 1; 
             }
         }
@@ -420,23 +422,12 @@
         .pop-animation {
             animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             transform: translateZ(0);
+            -webkit-transform: translateZ(0);
             backface-visibility: hidden;
-            will-change: transform, opacity;
+            -webkit-backface-visibility: hidden;
         }
         
-        /* Стили для Telegram Web App */
-        .telegram-fullscreen {
-            height: 100vh !important;
-            height: 100dvh !important;
-            max-height: 100% !important;
-        }
-        
-        /* Плавные анимации для 120 Гц */
-        .smooth-transition {
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-        
-        /* Мобильная адаптация */
+        /* Мобильная адаптация для iPhone */
         @media (max-width: 480px) {
             #number-display {
                 font-size: 56px;
@@ -520,17 +511,27 @@
             #settings-page, #stats-page {
                 height: -webkit-fill-available;
             }
+            
+            /* Оптимизация анимаций для iOS */
+            * {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+            
+            #generate-btn, .btn {
+                -webkit-touch-callout: none;
+            }
         }
         
-        /* Анимация нажатия для 120 Гц */
-        @keyframes buttonPress {
-            0% { transform: scale(1) translateZ(0); }
-            50% { transform: scale(0.95) translateZ(0); }
-            100% { transform: scale(1) translateZ(0); }
-        }
-        
-        .button-press {
-            animation: buttonPress 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        /* Фикс для 120Hz ProMotion дисплеев iPhone */
+        @media (prefers-reduced-motion: no-preference) {
+            .chart-bar {
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            
+            .pop-animation {
+                animation-duration: 0.25s;
+            }
         }
     </style>
 </head>
@@ -540,7 +541,7 @@
         <div id="number-display">0</div>
         <button id="generate-btn">НАЖМИ</button>
         
-        <!-- НЕВИДИМЫЕ области управления -->
+        <!-- Невидимые области управления -->
         <div id="bottom-left-area"></div>
         <div id="bottom-right-area"></div>
     </div>
@@ -633,59 +634,104 @@
         let maxRange = 10;
         let numberStats = {};
         
-        // Инициализация Telegram Web App
+        // Telegram Web App объект
+        let tg = null;
+        
+        // Инициализация Telegram Web App с расширением на весь экран
         function initTelegramWebApp() {
             if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
+                tg = window.Telegram.WebApp;
                 
-                // Расширяем на весь экран
+                // Расширяем на весь экран сразу
                 tg.expand();
+                
+                // Показываем основной интерфейс
+                tg.MainButton.hide();
+                tg.BackButton.hide();
+                
+                // Устанавливаем цвет фона
+                tg.setBackgroundColor('#f5f5f5');
+                tg.setHeaderColor('#f5f5f5');
+                
+                // Включаем кнопку "Назад"
+                tg.BackButton.onClick(handleTelegramBack);
                 
                 // Обработка изменения viewport
                 tg.onEvent('viewportChanged', handleViewportChange);
                 
-                // Устанавливаем цвет фона
-                tg.setBackgroundColor('#f5f5f5');
+                console.log('Telegram Web App initialized, expanded:', tg.isExpanded);
                 
-                // Включаем кнопку "Назад" в Telegram
-                tg.BackButton.show();
-                tg.BackButton.onClick(handleTelegramBack);
+                // Проверяем, развернуто ли приложение
+                if (!tg.isExpanded) {
+                    setTimeout(() => {
+                        tg.expand();
+                        console.log('Forced expand after delay');
+                    }, 100);
+                }
                 
-                // Добавляем класс для стилей Telegram
-                document.body.classList.add('telegram-fullscreen');
+                return true;
             }
+            return false;
         }
         
-        // Функция для виброотклика ТОЛЬКО через Telegram Web App API
-        function triggerHapticFeedback() {
-            // ИСПРАВЛЕНО: Только Telegram вибрация
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-                // Используем официальное API Telegram для тактильной отдачи
-                window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+        // Функция для виброотклика через Telegram Web App API
+        function triggerHapticFeedback(type = 'medium') {
+            // ИСПРАВЛЕНО: Только Telegram вибрация с проверкой доступности
+            if (tg && tg.HapticFeedback) {
+                try {
+                    // Используем правильный метод для тактильной отдачи
+                    switch(type) {
+                        case 'light':
+                            tg.HapticFeedback.impactOccurred('light');
+                            break;
+                        case 'medium':
+                            tg.HapticFeedback.impactOccurred('medium');
+                            break;
+                        case 'heavy':
+                            tg.HapticFeedback.impactOccurred('heavy');
+                            break;
+                        case 'success':
+                            tg.HapticFeedback.notificationOccurred('success');
+                            break;
+                        case 'error':
+                            tg.HapticFeedback.notificationOccurred('error');
+                            break;
+                        default:
+                            tg.HapticFeedback.impactOccurred('medium');
+                    }
+                } catch (error) {
+                    console.error('Haptic feedback error:', error);
+                }
+            } else if (tg && tg.vibrate) {
+                // Fallback для старой версии API
+                try {
+                    tg.vibrate();
+                } catch (error) {
+                    console.error('Vibrate error:', error);
+                }
             }
-            // НЕТ fallback для браузеров - только Telegram!
         }
         
         // Обработка изменения размера viewport
         function handleViewportChange() {
-            // Принудительный рефлоу для всех страниц
-            [mainPage, settingsPage, statsPage].forEach(page => {
-                if (page) {
-                    page.style.display = 'none';
-                    void page.offsetWidth;
-                    if (page === mainPage) {
-                        page.style.display = 'flex';
+            // Принудительный рефлоу для iOS
+            setTimeout(() => {
+                [mainPage, settingsPage, statsPage].forEach(page => {
+                    if (page) {
+                        page.style.display = 'none';
+                        void page.offsetWidth;
+                        if (page === mainPage) {
+                            page.style.display = 'flex';
+                        }
                     }
+                });
+                
+                if (statsPage.style.display === 'flex') {
+                    setTimeout(updateStatsDisplay, 50);
                 }
-            });
-            
-            // Обновляем график если он открыт
-            if (statsPage.style.display === 'flex') {
-                setTimeout(updateStatsDisplay, 50);
-            }
-            
-            // Обновляем высоту body
-            updateBodyHeight();
+                
+                updateBodyHeight();
+            }, 10);
         }
         
         // Обработка кнопки "Назад" в Telegram
@@ -694,15 +740,14 @@
                 closeSettingsPanel();
             } else if (statsPage.style.display === 'flex') {
                 closeStatsPanel();
-            } else {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.close();
-                }
+            } else if (tg) {
+                tg.close();
             }
         }
         
         // Обновление высоты body с учетом safe areas
         function updateBodyHeight() {
+            // Для iOS используем правильную высоту
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
             
@@ -750,24 +795,28 @@
             localStorage.setItem('numberStats', JSON.stringify(numberStats));
         }
         
-        // Генерация случайного числа с анимацией 120 Гц
+        // Генерация случайного числа с оптимизированной анимацией для iOS
         function generateNumber() {
             if (clickCount >= maxClicks) return;
             
             // Виброотклик ТОЛЬКО через Telegram API
-            triggerHapticFeedback();
+            triggerHapticFeedback('medium');
             
-            // Анимация кнопки
-            generateBtn.classList.remove('button-press');
-            void generateBtn.offsetWidth;
-            generateBtn.classList.add('button-press');
+            // Оптимизированная анимация кнопки для iOS
+            generateBtn.style.transform = 'scale(0.95) translateZ(0)';
+            generateBtn.style.webkitTransform = 'scale(0.95) translateZ(0)';
+            
+            setTimeout(() => {
+                generateBtn.style.transform = 'translateZ(0)';
+                generateBtn.style.webkitTransform = 'translateZ(0)';
+            }, 150);
             
             // Генерация числа
             const randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
             
-            // Анимация появления числа (120 Гц оптимизация)
+            // Оптимизированная анимация числа для iOS
             numberDisplay.classList.remove('pop-animation');
-            void numberDisplay.offsetWidth;
+            void numberDisplay.offsetWidth; // Принудительный рефлоу
             numberDisplay.textContent = randomNum;
             numberDisplay.classList.add('pop-animation');
             
@@ -786,17 +835,13 @@
             if (clickCount >= maxClicks) {
                 generateBtn.disabled = true;
                 // Виброотклик при достижении лимита
-                setTimeout(triggerHapticFeedback, 100);
+                setTimeout(() => triggerHapticFeedback('success'), 100);
             }
             
             saveData();
-            updateStatsDisplay();
             
-            // Использование requestAnimationFrame для 120 Гц
-            requestAnimationFrame(() => {
-                // Дополнительные плавные обновления
-                updateStatsDisplay();
-            });
+            // Отложенное обновление статистики для производительности
+            setTimeout(updateStatsDisplay, 50);
         }
         
         // Сброс сессии
@@ -810,7 +855,7 @@
             updateStatsDisplay();
             
             // Виброотклик ТОЛЬКО через Telegram API
-            triggerHapticFeedback();
+            triggerHapticFeedback('light');
         }
         
         // Обновление настроек
@@ -842,12 +887,17 @@
             mainPage.style.display = 'none';
             
             // Виброотклик ТОЛЬКО через Telegram API
-            triggerHapticFeedback();
+            triggerHapticFeedback('light');
             
-            // Принудительный рефлоу для корректного отображения
-            requestAnimationFrame(() => {
+            // Показываем кнопку "Назад" в Telegram
+            if (tg) {
+                tg.BackButton.show();
+            }
+            
+            // Принудительный рефлоу для iOS
+            setTimeout(() => {
                 void settingsPage.offsetWidth;
-            });
+            }, 10);
         }
         
         // Закрытие настроек
@@ -857,12 +907,17 @@
             mainPage.style.display = 'flex';
             
             // Виброотклик ТОЛЬКО через Telegram API
-            triggerHapticFeedback();
+            triggerHapticFeedback('light');
             
-            // Принудительный рефлоу
-            requestAnimationFrame(() => {
+            // Прячем кнопку "Назад" в Telegram
+            if (tg) {
+                tg.BackButton.hide();
+            }
+            
+            // Принудительный рефлоу для iOS
+            setTimeout(() => {
                 void mainPage.offsetWidth;
-            });
+            }, 10);
         }
         
         // Открытие статистики
@@ -872,12 +927,17 @@
             mainPage.style.display = 'none';
             
             // Виброотклик ТОЛЬКО через Telegram API
-            triggerHapticFeedback();
+            triggerHapticFeedback('light');
             
-            // Принудительный рефлоу
-            requestAnimationFrame(() => {
+            // Показываем кнопку "Назад" в Telegram
+            if (tg) {
+                tg.BackButton.show();
+            }
+            
+            // Принудительный рефлоу для iOS
+            setTimeout(() => {
                 void statsPage.offsetWidth;
-            });
+            }, 10);
         }
         
         // Закрытие статистики
@@ -886,15 +946,20 @@
             mainPage.style.display = 'flex';
             
             // Виброотклик ТОЛЬКО через Telegram API
-            triggerHapticFeedback();
+            triggerHapticFeedback('light');
             
-            // Принудительный рефлоу
-            requestAnimationFrame(() => {
+            // Прячем кнопку "Назад" в Telegram
+            if (tg) {
+                tg.BackButton.hide();
+            }
+            
+            // Принудительный рефлоу для iOS
+            setTimeout(() => {
                 void mainPage.offsetWidth;
-            });
+            }, 10);
         }
         
-        // Обновление отображения статистики с 120 Гц оптимизацией
+        // Обновление отображения статистики с оптимизацией для iOS
         function updateStatsDisplay() {
             // Используем requestAnimationFrame для плавности
             requestAnimationFrame(() => {
@@ -931,19 +996,17 @@
                         gridLines.appendChild(gridLine);
                     });
                     
-                    // Создание столбцов с анимацией
+                    // Создание столбцов с оптимизированной анимацией transform
                     for (let i = minRange; i <= maxRange; i++) {
                         const count = numberStats[i] || 0;
-                        const height = maxValue > 0 ? (count / maxValue) * 70 + 10 : 10;
+                        const scaleY = maxValue > 0 ? (count / maxValue) * 0.9 + 0.1 : 0.1;
                         
                         const bar = document.createElement('div');
                         bar.className = 'chart-bar';
-                        bar.style.height = '10%'; // Начальная высота
                         
-                        // Анимируем до нужной высоты в следующем кадре
-                        requestAnimationFrame(() => {
-                            bar.style.height = `${height}%`;
-                        });
+                        // Используем transform вместо height для лучшей производительности
+                        bar.style.transform = `translateZ(0) scaleY(${scaleY})`;
+                        bar.style.webkitTransform = `translateZ(0) scaleY(${scaleY})`;
                         
                         statsChart.appendChild(bar);
                         
@@ -968,7 +1031,8 @@
                     for (let i = minRange; i <= maxRange; i++) {
                         const bar = document.createElement('div');
                         bar.className = 'chart-bar';
-                        bar.style.height = '10%';
+                        bar.style.transform = 'translateZ(0) scaleY(0.1)';
+                        bar.style.webkitTransform = 'translateZ(0) scaleY(0.1)';
                         statsChart.appendChild(bar);
                         
                         const label = document.createElement('div');
@@ -1005,16 +1069,17 @@
         }
         
         // Обработчик изменения размера окна
+        let resizeTimeout;
         function handleResize() {
-            updateBodyHeight();
-            
-            if (statsPage.style.display === 'flex') {
-                setTimeout(updateStatsDisplay, 50);
-            }
-            
-            // Дебаунс для предотвращения частых обновлений
-            clearTimeout(window.resizeTimeout);
-            window.resizeTimeout = setTimeout(() => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                updateBodyHeight();
+                
+                if (statsPage.style.display === 'flex') {
+                    setTimeout(updateStatsDisplay, 50);
+                }
+                
+                // Принудительный рефлоу для видимых страниц
                 requestAnimationFrame(() => {
                     [mainPage, settingsPage, statsPage].forEach(page => {
                         if (page.style.display === 'flex') {
@@ -1025,10 +1090,10 @@
             }, 100);
         }
         
-        // Инициализация
+        // Инициализация приложения
         function init() {
             // Инициализация Telegram Web App
-            initTelegramWebApp();
+            const isTelegram = initTelegramWebApp();
             
             // Загрузка данных
             loadData();
@@ -1036,45 +1101,27 @@
             // Обновляем высоту body при загрузке
             updateBodyHeight();
             
-            // Обработчики событий с requestAnimationFrame для плавности
-            generateBtn.addEventListener('click', () => {
-                requestAnimationFrame(generateNumber);
-            });
+            // Обработчики событий с оптимизацией для iOS
+            generateBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                generateNumber();
+            }, { passive: false });
             
-            bottomLeftArea.addEventListener('click', () => {
-                requestAnimationFrame(openStats);
-            });
+            generateBtn.addEventListener('click', generateNumber);
             
-            bottomRightArea.addEventListener('click', () => {
-                requestAnimationFrame(openSettings);
-            });
-            
-            closeSettings.addEventListener('click', () => {
-                requestAnimationFrame(closeSettingsPanel);
-            });
-            
-            statsCloseBtn.addEventListener('click', () => {
-                requestAnimationFrame(closeStatsPanel);
-            });
-            
-            resetBtn.addEventListener('click', () => {
-                requestAnimationFrame(resetSession);
-            });
-            
-            saveBtn.addEventListener('click', () => {
-                requestAnimationFrame(closeSettingsPanel);
-            });
+            bottomLeftArea.addEventListener('click', openStats);
+            bottomRightArea.addEventListener('click', openSettings);
+            closeSettings.addEventListener('click', closeSettingsPanel);
+            statsCloseBtn.addEventListener('click', closeStatsPanel);
+            resetBtn.addEventListener('click', resetSession);
+            saveBtn.addEventListener('click', closeSettingsPanel);
             
             // Обработчики настроек
-            const updateSettingsDebounced = () => {
-                requestAnimationFrame(updateSettings);
-            };
+            minRangeInput.addEventListener('change', updateSettings);
+            maxRangeInput.addEventListener('change', updateSettings);
+            maxClicksInput.addEventListener('change', updateSettings);
             
-            minRangeInput.addEventListener('change', updateSettingsDebounced);
-            maxRangeInput.addEventListener('change', updateSettingsDebounced);
-            maxClicksInput.addEventListener('change', updateSettingsDebounced);
-            
-            // Обработчики для удобного ввода
+            // Обработчики для удобного ввода на iOS
             const inputs = [minRangeInput, maxRangeInput, maxClicksInput];
             inputs.forEach(input => {
                 input.addEventListener('keydown', function(e) {
@@ -1094,9 +1141,14 @@
             window.addEventListener('orientationchange', handleOrientationChange);
             
             // Предотвращение масштабирования при двойном тапе
-            document.addEventListener('dblclick', function(e) {
-                e.preventDefault();
-            }, { passive: false });
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(e) {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
             
             // Предотвращение выделения текста
             document.addEventListener('selectstart', function(e) {
@@ -1105,20 +1157,26 @@
                 }
             });
             
-            // Обработка касаний для улучшения отзывчивости
-            document.addEventListener('touchstart', function() {}, { passive: true });
+            // Оптимизация для iOS
             document.addEventListener('touchmove', function(e) {
                 if (e.target.matches('input')) return;
                 e.preventDefault();
             }, { passive: false });
             
-            // Принудительный рефлоу после загрузки для 120 Гц
-            requestAnimationFrame(() => {
+            // Принудительный рефлоу после загрузки
+            setTimeout(() => {
                 void document.body.offsetWidth;
-                if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.ready();
+                if (tg) {
+                    tg.ready();
+                    
+                    // Дополнительный вызов expand для надежности
+                    setTimeout(() => {
+                        if (tg && !tg.isExpanded) {
+                            tg.expand();
+                        }
+                    }, 200);
                 }
-            });
+            }, 100);
         }
         
         // Запуск приложения
@@ -1134,12 +1192,6 @@
             setTimeout(updateBodyHeight, 100);
             setTimeout(updateBodyHeight, 500);
         });
-        
-        // Оптимизация для 120 Гц дисплеев
-        if (window.matchMedia('(min-width: 1200px)').matches || 
-            window.matchMedia('(min-resolution: 120dpi)').matches) {
-            document.body.classList.add('smooth-transition');
-        }
     </script>
 </body>
 </html>
