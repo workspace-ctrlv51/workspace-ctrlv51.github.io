@@ -245,43 +245,73 @@
         }
         
         .cards-info {
-            font-size: 14px;
-            color: #666;
-            background: rgba(255,255,255,0.9);
-            padding: 8px 14px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 16px;
             border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         
         .cards-container {
             position: relative;
             width: 100%;
-            height: 55%;
+            height: 40%;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 30px;
+        }
+        
+        /* Зона открытых карт (стол) */
+        .table-area {
+            position: absolute;
+            bottom: 18%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            z-index: 500;
+        }
+        
+        .table-card-slot {
+            width: 50px;
+            height: 70px;
+            border: 2px dashed rgba(0,0,0,0.1);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .table-card-slot.filled {
+            border: none;
         }
         
         /* Руки держащие карты */
         .hand {
             position: absolute;
-            font-size: 50px;
-            opacity: 0.12;
+            font-size: 45px;
+            opacity: 0.1;
             z-index: 1;
             filter: grayscale(1);
             pointer-events: none;
         }
         
         .hand-left {
-            left: 2%;
-            bottom: 35%;
-            transform: scaleX(-1) rotate(-30deg);
+            left: 0%;
+            top: 50%;
+            transform: scaleX(-1) rotate(-25deg) translateY(-50%);
         }
         
         .hand-right {
-            right: 2%;
-            bottom: 35%;
-            transform: rotate(30deg);
+            right: 0%;
+            top: 50%;
+            transform: rotate(25deg) translateY(-50%);
         }
         
         /* Реалистичные карты */
@@ -442,46 +472,54 @@
             filter: drop-shadow(0 0 6px rgba(0,0,0,0.4));
         }
         
-        /* Hover эффект - поднимает карту */
-        .card:hover {
-            margin-top: -15px;
+        /* Карта на столе */
+        .card.on-table {
+            width: 50px !important;
+            height: 70px !important;
+            cursor: default;
         }
         
-        .card.flipped:hover {
-            margin-top: -10px;
+        .card.on-table .card-corner-value {
+            font-size: 12px;
+        }
+        
+        .card.on-table .card-corner-suit {
+            font-size: 11px;
+        }
+        
+        .card.on-table .card-center {
+            font-size: 24px;
+        }
+        
+        /* Hover эффект - поднимает карту */
+        .card:not(.on-table):hover {
+            margin-top: -12px;
         }
         
         /* Результат игры */
         .cards-result {
             position: absolute;
-            bottom: 15%;
+            bottom: 5%;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
         }
         
         .result-text {
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 15px;
-            min-height: 24px;
-        }
-        
-        .result-win {
-            color: #27ae60;
-        }
-        
-        .result-lose {
-            color: #e74c3c;
+            font-size: 15px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            min-height: 20px;
+            color: #666;
         }
         
         .restart-btn {
             background: #000;
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 16px;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: transform 0.2s, background 0.2s;
@@ -826,7 +864,22 @@
             }
             
             .hand {
-                font-size: 40px;
+                font-size: 35px;
+            }
+            
+            .table-area {
+                height: 75px;
+                gap: 6px;
+            }
+            
+            .table-card-slot {
+                width: 42px;
+                height: 60px;
+            }
+            
+            .card.on-table {
+                width: 42px !important;
+                height: 60px !important;
             }
         }
         
@@ -867,6 +920,33 @@
                 bottom: 1px;
                 right: 2px;
             }
+            
+            .table-area {
+                height: 65px;
+                gap: 4px;
+            }
+            
+            .table-card-slot {
+                width: 36px;
+                height: 52px;
+            }
+            
+            .card.on-table {
+                width: 36px !important;
+                height: 52px !important;
+            }
+            
+            .card.on-table .card-corner-value {
+                font-size: 9px;
+            }
+            
+            .card.on-table .card-corner-suit {
+                font-size: 8px;
+            }
+            
+            .card.on-table .card-center {
+                font-size: 16px;
+            }
         }
         
         @media (prefers-reduced-motion: no-preference) {
@@ -905,7 +985,7 @@
     <div id="cards-page">
         <div class="cards-header">
             <button class="back-btn" id="cards-back-btn">←</button>
-            <div class="cards-info">Выбрано: <span id="selected-count">0</span>/4</div>
+            <div class="cards-info"><span id="selected-count">0</span> / 4</div>
         </div>
         
         <div class="hand hand-left">🤚</div>
@@ -915,9 +995,16 @@
             <!-- Карты генерируются динамически -->
         </div>
         
+        <div class="table-area" id="table-area">
+            <div class="table-card-slot" data-slot="0"></div>
+            <div class="table-card-slot" data-slot="1"></div>
+            <div class="table-card-slot" data-slot="2"></div>
+            <div class="table-card-slot" data-slot="3"></div>
+        </div>
+        
         <div class="cards-result">
             <div class="result-text" id="cards-result-text"></div>
-            <button class="restart-btn" id="restart-cards-btn" style="display: none;">Ещё раз</button>
+            <button class="restart-btn" id="restart-cards-btn" style="display: none;">Заново</button>
         </div>
     </div>
     
@@ -1270,10 +1357,13 @@
         // ============ ЛОГИКА КАРТ ============
         function createDeck() {
             deck = [];
-            // Создаём полную колоду 52 карты
+            // Создаём 20 карт - по 5 каждой масти (равные шансы)
+            // Берём 5 случайных значений для каждой масти
             for (const suit of suits) {
-                for (const value of values) {
-                    deck.push({ suit, value });
+                // Перемешиваем значения и берём первые 5
+                const shuffledValues = [...values].sort(() => Math.random() - 0.5);
+                for (let i = 0; i < 5; i++) {
+                    deck.push({ suit, value: shuffledValues[i] });
                 }
             }
             // Перемешиваем колоду (алгоритм Фишера-Йетса)
@@ -1287,9 +1377,17 @@
             selectedCards = [];
             gameEnded = false;
             cardsResultText.textContent = '';
-            cardsResultText.className = 'result-text';
             restartCardsBtn.style.display = 'none';
             selectedCountSpan.textContent = '0';
+            
+            // Очищаем слоты стола
+            const tableArea = document.getElementById('table-area');
+            tableArea.innerHTML = `
+                <div class="table-card-slot" data-slot="0"></div>
+                <div class="table-card-slot" data-slot="1"></div>
+                <div class="table-card-slot" data-slot="2"></div>
+                <div class="table-card-slot" data-slot="3"></div>
+            `;
             
             createDeck();
             renderCards();
@@ -1314,13 +1412,13 @@
                 cardHeight = 54;
             }
             
-            // Угол веера - чем больше карт, тем меньше угол на карту
-            const totalAngle = 180;
+            // Угол веера - для 20 карт
+            const totalAngle = 140;
             const startAngle = -totalAngle / 2;
             const angleStep = totalAngle / (totalCards - 1);
             
-            // Радиус веера - подстраиваем под размер контейнера
-            const radius = Math.min(containerWidth * 0.45, containerHeight * 0.7, 200);
+            // Радиус веера
+            const radius = Math.min(containerWidth * 0.4, 160);
             
             deck.forEach((card, index) => {
                 const cardEl = document.createElement('div');
@@ -1382,8 +1480,74 @@
                     cardEl.style.transform = `rotate(${angle}deg)`;
                 }, index * 15);
                 
-                // Клик по карте
-                cardEl.addEventListener('click', () => handleCardClick(cardEl, index));
+                // Drag & drop и клик
+                let isDragging = false;
+                let startX, startY, startLeft, startTop;
+                let hasMoved = false;
+                
+                const onStart = (e) => {
+                    if (cardEl.classList.contains('flipped') || gameEnded || selectedCards.length >= 4) return;
+                    
+                    isDragging = true;
+                    hasMoved = false;
+                    cardEl.style.zIndex = 1000;
+                    cardEl.style.transition = 'none';
+                    
+                    const touch = e.touches ? e.touches[0] : e;
+                    startX = touch.clientX;
+                    startY = touch.clientY;
+                    startLeft = cardEl.offsetLeft;
+                    startTop = cardEl.offsetTop;
+                    
+                    triggerHapticFeedback('selection');
+                };
+                
+                const onMove = (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    
+                    const touch = e.touches ? e.touches[0] : e;
+                    const deltaX = touch.clientX - startX;
+                    const deltaY = touch.clientY - startY;
+                    
+                    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                        hasMoved = true;
+                    }
+                    
+                    cardEl.style.left = (startLeft + deltaX) + 'px';
+                    cardEl.style.top = (startTop + deltaY) + 'px';
+                    cardEl.style.transform = 'rotate(0deg) scale(1.1)';
+                };
+                
+                const onEnd = (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    
+                    // Проверяем, перетащили ли на стол
+                    const tableArea = document.getElementById('table-area');
+                    const tableRect = tableArea.getBoundingClientRect();
+                    const cardRect = cardEl.getBoundingClientRect();
+                    const cardCenterY = cardRect.top + cardRect.height / 2;
+                    
+                    if (cardCenterY > tableRect.top - 30 || hasMoved === false) {
+                        // Открываем карту
+                        handleCardClick(cardEl, index);
+                    } else {
+                        // Возвращаем карту на место
+                        cardEl.style.transition = 'all 0.3s ease';
+                        cardEl.style.left = `calc(50% + ${Math.sin((parseFloat(cardEl.dataset.angle) * Math.PI) / 180) * radius}px - ${cardWidth/2}px)`;
+                        cardEl.style.top = `calc(50% + ${-Math.cos((parseFloat(cardEl.dataset.angle) * Math.PI) / 180) * radius + radius * 0.6}px - ${cardHeight/2}px)`;
+                        cardEl.style.transform = `rotate(${cardEl.dataset.angle}deg)`;
+                        cardEl.style.zIndex = index;
+                    }
+                };
+                
+                cardEl.addEventListener('mousedown', onStart);
+                cardEl.addEventListener('touchstart', onStart, { passive: true });
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchend', onEnd);
                 
                 cardsContainer.appendChild(cardEl);
             });
@@ -1396,15 +1560,35 @@
             
             triggerHapticFeedback('light');
             
-            // Переворачиваем карту (анимация через CSS на card-face)
+            const slotIndex = selectedCards.length;
+            const slot = document.querySelector(`.table-card-slot[data-slot="${slotIndex}"]`);
+            
+            // Переворачиваем и перемещаем на стол
             cardEl.classList.add('flipped');
             cardEl.classList.add('selected');
-            cardEl.style.zIndex = 600 + selectedCards.length;
+            cardEl.classList.add('on-table');
+            
+            // Получаем позицию слота
+            const slotRect = slot.getBoundingClientRect();
+            const containerRect = cardsContainer.getBoundingClientRect();
+            
+            // Перемещаем карту на стол
+            const newLeft = slotRect.left - containerRect.left + (slotRect.width / 2) - 25;
+            const newTop = slotRect.top - containerRect.top + (slotRect.height / 2) - 35;
+            
+            cardEl.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            cardEl.style.left = newLeft + 'px';
+            cardEl.style.top = newTop + 'px';
+            cardEl.style.transform = 'rotate(0deg)';
+            cardEl.style.zIndex = 700 + slotIndex;
+            
+            slot.classList.add('filled');
             
             selectedCards.push({
                 index,
                 suit: cardEl.dataset.suit,
-                value: cardEl.dataset.value
+                value: cardEl.dataset.value,
+                element: cardEl
             });
             
             selectedCountSpan.textContent = selectedCards.length;
@@ -1418,25 +1602,36 @@
         function checkResult() {
             gameEnded = true;
             
-            // Проверяем все ли карты одной масти
-            const firstSuit = selectedCards[0].suit;
-            const allSameSuit = selectedCards.every(card => card.suit === firstSuit);
+            // Считаем масти и цвета
+            const suitCounts = {};
+            let redCount = 0;
+            let blackCount = 0;
             
+            selectedCards.forEach(card => {
+                suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
+                if (card.suit === 'hearts' || card.suit === 'diamonds') {
+                    redCount++;
+                } else {
+                    blackCount++;
+                }
+            });
+            
+            const maxSameSuit = Math.max(...Object.values(suitCounts));
+            const allSameSuit = maxSameSuit === 4;
+            const allSameColor = redCount === 4 || blackCount === 4;
+            
+            // Нейтральный результат
+            let resultText = '';
             if (allSameSuit) {
-                cardsResultText.textContent = '🎉 Победа! Все карты одной масти!';
-                cardsResultText.className = 'result-text result-win';
-                triggerHapticFeedback('success');
+                resultText = '4 одной масти';
+            } else if (allSameColor) {
+                resultText = '4 одного цвета';
             } else {
-                // Считаем масти
-                const suitCounts = {};
-                selectedCards.forEach(card => {
-                    suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
-                });
-                const maxSuit = Math.max(...Object.values(suitCounts));
-                cardsResultText.textContent = `Не повезло. Максимум ${maxSuit} карты одной масти`;
-                cardsResultText.className = 'result-text result-lose';
-                triggerHapticFeedback('error');
+                resultText = `${maxSameSuit} одной масти`;
             }
+            
+            cardsResultText.textContent = resultText;
+            triggerHapticFeedback('light');
             
             restartCardsBtn.style.display = 'inline-block';
         }
