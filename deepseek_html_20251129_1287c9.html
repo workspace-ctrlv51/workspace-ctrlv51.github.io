@@ -17,6 +17,13 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            touch-action: manipulation;
+        }
+        
+        /* Отключаем лупу и зум на iOS */
+        input, textarea, button, select {
+            font-size: 16px !important; /* iOS не зумит если размер >= 16px */
+            touch-action: manipulation;
         }
         
         html {
@@ -82,32 +89,33 @@
             height: 150px;
             font-size: 20px;
             cursor: pointer;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
             font-weight: 600;
-            will-change: transform;
-            transform: perspective(400px) rotateX(0deg) rotateY(0deg);
+            will-change: transform, box-shadow;
+            transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1);
             transform-style: preserve-3d;
-            backface-visibility: hidden;
             -webkit-appearance: none;
             appearance: none;
-            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                        box-shadow 0.15s ease-out,
-                        background-color 0.15s ease-out;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), 
+                        box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                        background-color 0.2s ease;
         }
         
         #generate-btn:hover {
-            background-color: #222;
+            background-color: #1a1a1a;
         }
         
         #generate-btn.pressed {
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+            transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
         }
         
         #generate-btn:disabled {
             background-color: #999;
             cursor: not-allowed;
-            transform: perspective(400px) rotateX(0deg) rotateY(0deg);
-            box-shadow: none;
+            transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         
         /* Невидимые области для управления */
@@ -198,11 +206,12 @@
             border: 1px solid #ddd;
             background-color: #f9f9f9;
             color: #333;
-            font-size: 16px;
+            font-size: 16px !important;
             -webkit-user-select: text;
             user-select: text;
             -webkit-appearance: none;
             appearance: none;
+            touch-action: manipulation;
         }
         
         .buttons-group {
@@ -1001,48 +1010,56 @@
             // Обработчики событий
             generateBtn.addEventListener('click', generateNumber);
             
-            // 3D эффект "монетка на иголке" - кнопка перевешивает в сторону нажатия
+            // 3D эффект "вдавливания" - нажал справа, правая сторона уходит вглубь
             function handleButtonPress(e) {
                 if (generateBtn.disabled) return;
                 
-                const rect = generateBtn.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
+                e.preventDefault(); // Предотвращаем лупу и зум
                 
-                let clientX, clientY;
+                const rect = generateBtn.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                let touchX, touchY;
                 if (e.touches && e.touches[0]) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
+                    touchX = e.touches[0].clientX - rect.left;
+                    touchY = e.touches[0].clientY - rect.top;
                 } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
+                    touchX = e.clientX - rect.left;
+                    touchY = e.clientY - rect.top;
                 }
                 
-                // Вычисляем смещение от центра (-1 до 1)
-                const offsetX = (clientX - centerX) / (rect.width / 2);
-                const offsetY = (clientY - centerY) / (rect.height / 2);
+                // Смещение от центра (-1 до 1)
+                const offsetX = (touchX - centerX) / centerX;
+                const offsetY = (touchY - centerY) / centerY;
                 
-                // Ограничиваем значения
-                const clampedX = Math.max(-1, Math.min(1, offsetX));
-                const clampedY = Math.max(-1, Math.min(1, offsetY));
+                // Ограничиваем и сглаживаем
+                const smoothX = Math.max(-1, Math.min(1, offsetX)) * 0.8;
+                const smoothY = Math.max(-1, Math.min(1, offsetY)) * 0.8;
                 
-                // Наклон В сторону нажатия (как монетка перевешивает)
-                // Нажали справа - правый край опускается (rotateY отрицательный)
-                // Нажали снизу - нижний край опускается (rotateX положительный)
-                const rotateX = clampedY * 12;
-                const rotateY = -clampedX * 12;
+                // Вдавливание: нажал справа -> правая сторона уходит вглубь
+                // rotateY положительный = левая сторона к нам, правая от нас
+                // rotateX отрицательный = верх к нам, низ от нас
+                const rotateY = smoothX * 10;
+                const rotateX = -smoothY * 10;
+                
+                // Тень смещается в противоположную сторону от нажатия
+                const shadowX = -smoothX * 8;
+                const shadowY = -smoothY * 8;
                 
                 generateBtn.classList.add('pressed');
-                generateBtn.style.transform = `perspective(400px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(0.98)`;
+                generateBtn.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(0.96)`;
+                generateBtn.style.boxShadow = `${shadowX}px ${shadowY + 4}px 15px rgba(0, 0, 0, 0.3)`;
             }
             
             function handleButtonRelease() {
                 generateBtn.classList.remove('pressed');
                 generateBtn.style.transform = '';
+                generateBtn.style.boxShadow = '';
             }
             
             // Touch события
-            generateBtn.addEventListener('touchstart', handleButtonPress, { passive: true });
+            generateBtn.addEventListener('touchstart', handleButtonPress, { passive: false });
             generateBtn.addEventListener('touchend', handleButtonRelease, { passive: true });
             generateBtn.addEventListener('touchcancel', handleButtonRelease, { passive: true });
             
@@ -1086,7 +1103,17 @@
             // Предотвращение масштабирования при двойном тапе
             document.addEventListener('dblclick', function(e) {
                 e.preventDefault();
-            });
+            }, { passive: false });
+            
+            // Предотвращение контекстного меню (лупа на iOS при долгом нажатии)
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            // Предотвращение жестов масштабирования
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            }, { passive: false });
             
             // Предотвращение выделения текста
             document.addEventListener('selectstart', function(e) {
