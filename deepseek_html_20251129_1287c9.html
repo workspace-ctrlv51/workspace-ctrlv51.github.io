@@ -257,33 +257,35 @@
         .cards-container {
             position: relative;
             width: 100%;
-            height: 45%;
+            height: 50%;
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            align-items: flex-end;
-            padding-bottom: 20px;
+            align-content: center;
+            gap: 6px;
+            padding: 10px;
         }
         
         /* Зона открытых карт (стол) */
         .table-area {
             position: absolute;
-            bottom: 8%;
+            bottom: 10%;
             left: 50%;
             transform: translateX(-50%);
             width: 95%;
-            height: 100px;
+            height: 90px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             z-index: 500;
         }
         
         .table-card-slot {
-            width: 65px;
-            height: 92px;
+            width: 58px;
+            height: 82px;
             border: 2px dashed rgba(0,0,0,0.06);
-            border-radius: 6px;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -293,46 +295,41 @@
             border-color: transparent;
         }
         
-        /* Руки держащие карты */
+        /* Руки скрыты при сетке */
         .hand {
-            position: absolute;
-            font-size: 45px;
-            opacity: 0.1;
-            z-index: 1;
-            filter: grayscale(1);
-            pointer-events: none;
+            display: none;
         }
         
-        .hand-left {
-            left: 0%;
-            top: 50%;
-            transform: scaleX(-1) rotate(-25deg) translateY(-50%);
-        }
-        
-        .hand-right {
-            right: 0%;
-            top: 50%;
-            transform: rotate(25deg) translateY(-50%);
-        }
-        
-        /* Реалистичные карты - оптимизировано для 120-144Hz */
+        /* Реалистичные карты - сетка на столе */
         .card {
-            position: absolute;
-            width: 70px;
-            height: 100px;
-            border-radius: 6px;
+            position: relative;
+            width: 58px;
+            height: 82px;
+            border-radius: 5px;
             cursor: pointer;
             transform-style: preserve-3d;
-            will-change: transform;
-            contain: layout style paint;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            will-change: transform, opacity;
+            contain: layout paint;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
+            transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+                        box-shadow 0.15s ease;
+            flex-shrink: 0;
+        }
+        
+        .card:active {
+            transform: scale(0.95) !important;
         }
         
         .card.dragging {
             z-index: 1000 !important;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            transform: scale(1.1);
+        }
+        
+        .card.on-table {
+            position: absolute !important;
         }
         
         .card-face {
@@ -410,25 +407,25 @@
         }
         
         .card-corner-top {
-            top: 4px;
-            left: 5px;
+            top: 3px;
+            left: 4px;
         }
         
         .card-corner-bottom {
-            bottom: 4px;
-            right: 5px;
+            bottom: 3px;
+            right: 4px;
             transform: rotate(180deg);
         }
         
         .card-corner-value {
-            font-size: 16px;
+            font-size: 13px;
             font-family: 'Georgia', serif;
             font-weight: bold;
         }
         
         .card-corner-suit {
-            font-size: 14px;
-            margin-top: -2px;
+            font-size: 11px;
+            margin-top: -1px;
         }
         
         /* Центральная масть */
@@ -437,7 +434,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 36px;
+            font-size: 28px;
             line-height: 1;
         }
         
@@ -469,22 +466,8 @@
         
         /* Карта на столе */
         .card.on-table {
-            width: 65px !important;
-            height: 92px !important;
             cursor: default;
             box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-        }
-        
-        .card.on-table .card-corner-value {
-            font-size: 14px;
-        }
-        
-        .card.on-table .card-corner-suit {
-            font-size: 13px;
-        }
-        
-        .card.on-table .card-center {
-            font-size: 30px;
         }
         
         /* Результат игры */
@@ -838,40 +821,38 @@
             }
             
             .card {
-                width: 62px;
-                height: 88px;
+                width: 52px;
+                height: 74px;
             }
             
             .card-corner-value {
-                font-size: 14px;
+                font-size: 11px;
             }
             
             .card-corner-suit {
-                font-size: 12px;
+                font-size: 10px;
             }
             
             .card-center {
-                font-size: 30px;
+                font-size: 24px;
+            }
+            
+            .cards-container {
+                gap: 5px;
             }
             
             .hand {
-                font-size: 30px;
-                opacity: 0.08;
+                display: none;
             }
             
             .table-area {
-                height: 90px;
+                height: 80px;
                 gap: 6px;
             }
             
             .table-card-slot {
-                width: 58px;
-                height: 82px;
-            }
-            
-            .card.on-table {
-                width: 58px !important;
-                height: 82px !important;
+                width: 52px;
+                height: 74px;
             }
         }
         
@@ -887,57 +868,44 @@
             }
             
             .card {
-                width: 55px;
-                height: 78px;
+                width: 46px;
+                height: 66px;
             }
             
             .card-corner-value {
-                font-size: 12px;
-            }
-            
-            .card-corner-suit {
                 font-size: 10px;
             }
             
+            .card-corner-suit {
+                font-size: 9px;
+            }
+            
             .card-center {
-                font-size: 26px;
+                font-size: 20px;
             }
             
             .card-corner-top {
-                top: 3px;
-                left: 4px;
+                top: 2px;
+                left: 3px;
             }
             
             .card-corner-bottom {
-                bottom: 3px;
-                right: 4px;
+                bottom: 2px;
+                right: 3px;
+            }
+            
+            .cards-container {
+                gap: 4px;
             }
             
             .table-area {
-                height: 85px;
+                height: 72px;
                 gap: 5px;
             }
             
             .table-card-slot {
-                width: 52px;
-                height: 74px;
-            }
-            
-            .card.on-table {
-                width: 52px !important;
-                height: 74px !important;
-            }
-            
-            .card.on-table .card-corner-value {
-                font-size: 11px;
-            }
-            
-            .card.on-table .card-corner-suit {
-                font-size: 10px;
-            }
-            
-            .card.on-table .card-center {
-                font-size: 22px;
+                width: 46px;
+                height: 66px;
             }
         }
         
@@ -1387,33 +1355,12 @@
             renderCards();
         }
         
-        // Глобальные переменные для drag
-        let activeDragCard = null;
-        let dragStartX = 0, dragStartY = 0;
-        let cardOriginalPos = { x: 0, y: 0, angle: 0 };
-        let dragThreshold = 80; // Порог для применения при драге
-        let dragHandlersSetup = false;
+        // Защита от двойного клика
         let isProcessingCard = false;
-        let dragStartTime = 0;
-        let hasDragged = false;
         
         function renderCards() {
             cardsContainer.innerHTML = '';
             
-            const totalCards = deck.length;
-            const screenWidth = window.innerWidth;
-            
-            // Большие карты для удобства
-            let cardW = screenWidth <= 380 ? 55 : (screenWidth <= 480 ? 62 : 70);
-            let cardH = screenWidth <= 380 ? 78 : (screenWidth <= 480 ? 88 : 100);
-            
-            // Компактный веер
-            const totalAngle = 90;
-            const startAngle = -totalAngle / 2;
-            const angleStep = totalAngle / (totalCards - 1);
-            const radius = screenWidth <= 380 ? 75 : (screenWidth <= 480 ? 85 : 95);
-            
-            // Создаём фрагмент для оптимизации
             const fragment = document.createDocumentFragment();
             
             deck.forEach((card, index) => {
@@ -1443,145 +1390,31 @@
                     </div>
                 `;
                 
-                // Позиция в веере
-                const angle = startAngle + angleStep * index;
-                const rad = (angle * Math.PI) / 180;
-                const x = Math.sin(rad) * radius;
-                const y = -Math.cos(rad) * radius + radius * 0.7;
-                
-                cardEl.dataset.angle = angle;
-                cardEl.dataset.origX = x;
-                cardEl.dataset.origY = y;
-                
-                // GPU-ускоренное позиционирование
-                cardEl.style.left = '50%';
-                cardEl.style.top = '50%';
-                cardEl.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), 0) rotate(${angle}deg)`;
-                cardEl.style.zIndex = index;
+                // Начальное состояние для анимации
                 cardEl.style.opacity = '0';
+                cardEl.style.transform = 'scale(0.8)';
                 
                 // Плавное появление
                 requestAnimationFrame(() => {
                     setTimeout(() => {
-                        cardEl.style.transition = 'opacity 0.15s ease-out';
                         cardEl.style.opacity = '1';
-                    }, index * 8);
+                        cardEl.style.transform = 'scale(1)';
+                    }, index * 20);
+                });
+                
+                // Клик по карте
+                cardEl.addEventListener('click', (e) => {
+                    if (!cardEl.classList.contains('flipped') && !gameEnded && selectedCards.length < 4 && !isProcessingCard) {
+                        handleCardClick(cardEl, index);
+                    }
                 });
                 
                 fragment.appendChild(cardEl);
             });
             
             cardsContainer.appendChild(fragment);
-            
-            // Один глобальный обработчик для всех карт
-            setupDragHandlers();
         }
         
-        function setupDragHandlers() {
-            if (dragHandlersSetup) return;
-            dragHandlersSetup = true;
-            
-            let rafId = null;
-            let currentDeltaX = 0, currentDeltaY = 0;
-            
-            const updateCardPosition = () => {
-                if (!activeDragCard) return;
-                
-                const angleFade = Math.max(0, 1 - Math.abs(currentDeltaY) / 80);
-                const currentAngle = cardOriginalPos.angle * angleFade;
-                const newX = cardOriginalPos.x + currentDeltaX;
-                const newY = cardOriginalPos.y + currentDeltaY;
-                
-                activeDragCard.style.transform = `translate3d(calc(-50% + ${newX}px), calc(-50% + ${newY}px), 0) rotate(${currentAngle}deg) scale(1.08)`;
-            };
-            
-            const onStart = (e) => {
-                const card = e.target.closest('.card');
-                if (!card || card.classList.contains('flipped') || gameEnded || selectedCards.length >= 4 || isProcessingCard) return;
-                
-                activeDragCard = card;
-                hasDragged = false;
-                dragStartTime = Date.now();
-                
-                const touch = e.touches ? e.touches[0] : e;
-                dragStartX = touch.clientX;
-                dragStartY = touch.clientY;
-                currentDeltaX = 0;
-                currentDeltaY = 0;
-                
-                cardOriginalPos = {
-                    x: parseFloat(card.dataset.origX),
-                    y: parseFloat(card.dataset.origY),
-                    angle: parseFloat(card.dataset.angle)
-                };
-                
-                card.style.transition = 'none';
-                card.style.zIndex = 1000;
-                card.classList.add('dragging');
-            };
-            
-            const onMove = (e) => {
-                if (!activeDragCard) return;
-                
-                const touch = e.touches ? e.touches[0] : e;
-                currentDeltaX = touch.clientX - dragStartX;
-                currentDeltaY = touch.clientY - dragStartY;
-                
-                // Отмечаем что было реальное движение
-                if (Math.abs(currentDeltaX) > 8 || Math.abs(currentDeltaY) > 8) {
-                    hasDragged = true;
-                }
-                
-                // RAF для 120-144 FPS
-                if (!rafId) {
-                    rafId = requestAnimationFrame(() => {
-                        updateCardPosition();
-                        rafId = null;
-                    });
-                }
-                
-                e.preventDefault();
-            };
-            
-            const onEnd = (e) => {
-                if (!activeDragCard) return;
-                
-                if (rafId) {
-                    cancelAnimationFrame(rafId);
-                    rafId = null;
-                }
-                
-                const card = activeDragCard;
-                const tapDuration = Date.now() - dragStartTime;
-                
-                card.classList.remove('dragging');
-                activeDragCard = null;
-                
-                // Быстрый тап (< 200мс) без движения = применить карту
-                const isQuickTap = tapDuration < 200 && !hasDragged;
-                
-                // Потянули вниз сильно = применить карту
-                const isDragDown = currentDeltaY > dragThreshold;
-                
-                if (isQuickTap || isDragDown) {
-                    handleCardClick(card, parseInt(card.dataset.index));
-                } else {
-                    // Возвращаем на место плавно
-                    card.style.transition = 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)';
-                    card.style.transform = `translate3d(calc(-50% + ${cardOriginalPos.x}px), calc(-50% + ${cardOriginalPos.y}px), 0) rotate(${cardOriginalPos.angle}deg)`;
-                    card.style.zIndex = card.dataset.index;
-                }
-            };
-            
-            cardsContainer.addEventListener('mousedown', onStart);
-            cardsContainer.addEventListener('touchstart', onStart, { passive: true });
-            
-            document.addEventListener('mousemove', onMove, { passive: false });
-            document.addEventListener('touchmove', onMove, { passive: false });
-            
-            document.addEventListener('mouseup', onEnd);
-            document.addEventListener('touchend', onEnd);
-        }
         
         function handleCardClick(cardEl, index) {
             if (gameEnded) return;
@@ -1590,25 +1423,37 @@
             if (isProcessingCard) return;
             
             isProcessingCard = true;
-            setTimeout(() => { isProcessingCard = false; }, 250);
+            setTimeout(() => { isProcessingCard = false; }, 200);
             
             triggerHapticFeedback('light');
             
             const slotIndex = selectedCards.length;
             const slot = document.querySelector(`.table-card-slot[data-slot="${slotIndex}"]`);
             const slotRect = slot.getBoundingClientRect();
-            const containerRect = cardsContainer.getBoundingClientRect();
+            const cardRect = cardEl.getBoundingClientRect();
             
-            const targetX = slotRect.left - containerRect.left + slotRect.width / 2 - containerRect.width / 2;
-            const targetY = slotRect.top - containerRect.top + slotRect.height / 2 - containerRect.height / 2;
+            // Вычисляем смещение до слота
+            const deltaX = slotRect.left + slotRect.width/2 - cardRect.left - cardRect.width/2;
+            const deltaY = slotRect.top + slotRect.height/2 - cardRect.top - cardRect.height/2;
             
+            // Переворачиваем
             cardEl.classList.add('flipped');
             cardEl.classList.add('on-table');
             
-            // Плавная анимация 120-144 FPS
-            cardEl.style.transition = 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
-            cardEl.style.transform = `translate3d(calc(-50% + ${targetX}px), calc(-50% + ${targetY}px), 0) rotate(0deg)`;
+            // Перемещаем к слоту
+            cardEl.style.position = 'absolute';
+            cardEl.style.left = cardRect.left + 'px';
+            cardEl.style.top = cardRect.top + 'px';
+            cardEl.style.margin = '0';
             cardEl.style.zIndex = 700 + slotIndex;
+            
+            // Форсируем reflow
+            cardEl.offsetHeight;
+            
+            // Анимация к слоту
+            cardEl.style.transition = 'left 0.3s cubic-bezier(0.22, 1, 0.36, 1), top 0.3s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
+            cardEl.style.left = (slotRect.left + slotRect.width/2 - cardRect.width/2) + 'px';
+            cardEl.style.top = (slotRect.top + slotRect.height/2 - cardRect.height/2) + 'px';
             
             slot.classList.add('filled');
             
