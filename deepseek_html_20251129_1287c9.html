@@ -59,6 +59,7 @@
             align-items: center;
             will-change: transform;
             transform: translateZ(0);
+            position: relative;
         }
         
         #number-display {
@@ -111,22 +112,24 @@
         /* Невидимые области для управления */
         #bottom-left-area {
             position: absolute;
-            bottom: env(safe-area-inset-bottom, 0);
-            left: env(safe-area-inset-left, 0);
-            width: 70px;
-            height: 70px;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
             cursor: pointer;
-            z-index: 10;
+            z-index: 100;
+            /* background: rgba(255,0,0,0.1); */ /* раскомментировать для отладки */
         }
         
         #bottom-right-area {
             position: absolute;
-            bottom: env(safe-area-inset-bottom, 0);
-            right: env(safe-area-inset-right, 0);
-            width: 70px;
-            height: 70px;
+            bottom: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
             cursor: pointer;
-            z-index: 10;
+            z-index: 100;
+            /* background: rgba(0,0,255,0.1); */ /* раскомментировать для отладки */
         }
         
         /* Страница настроек */
