@@ -267,21 +267,21 @@
         /* Зона открытых карт (стол) */
         .table-area {
             position: absolute;
-            bottom: 12%;
+            bottom: 10%;
             left: 50%;
             transform: translateX(-50%);
-            width: 85%;
-            height: 80px;
+            width: 90%;
+            height: 90px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             z-index: 500;
         }
         
         .table-card-slot {
-            width: 50px;
-            height: 70px;
+            width: 56px;
+            height: 80px;
             border: 2px dashed rgba(0,0,0,0.08);
             border-radius: 6px;
             display: flex;
@@ -319,14 +319,14 @@
         /* Реалистичные карты - оптимизировано для 120Hz */
         .card {
             position: absolute;
-            width: 44px;
-            height: 62px;
-            border-radius: 4px;
+            width: 52px;
+            height: 74px;
+            border-radius: 5px;
             cursor: pointer;
             transform-style: preserve-3d;
             will-change: transform;
             contain: layout style paint;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
         }
         
         .card.dragging {
@@ -418,12 +418,12 @@
         }
         
         .card-corner-value {
-            font-size: 11px;
+            font-size: 12px;
             font-family: 'Georgia', serif;
         }
         
         .card-corner-suit {
-            font-size: 10px;
+            font-size: 11px;
             margin-top: -1px;
         }
         
@@ -433,7 +433,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 22px;
+            font-size: 24px;
             line-height: 1;
         }
         
@@ -465,22 +465,22 @@
         
         /* Карта на столе */
         .card.on-table {
-            width: 50px !important;
-            height: 70px !important;
+            width: 56px !important;
+            height: 80px !important;
             cursor: default;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         
         .card.on-table .card-corner-value {
-            font-size: 12px;
+            font-size: 13px;
         }
         
         .card.on-table .card-corner-suit {
-            font-size: 11px;
+            font-size: 12px;
         }
         
         .card.on-table .card-center {
-            font-size: 24px;
+            font-size: 26px;
         }
         
         /* Результат игры */
@@ -834,20 +834,20 @@
             }
             
             .card {
-                width: 38px;
-                height: 54px;
+                width: 48px;
+                height: 68px;
             }
             
             .card-corner-value {
-                font-size: 9px;
+                font-size: 10px;
             }
             
             .card-corner-suit {
-                font-size: 8px;
+                font-size: 9px;
             }
             
             .card-center {
-                font-size: 18px;
+                font-size: 20px;
             }
             
             .hand {
@@ -855,18 +855,18 @@
             }
             
             .table-area {
-                height: 75px;
-                gap: 6px;
+                height: 80px;
+                gap: 8px;
             }
             
             .table-card-slot {
-                width: 42px;
-                height: 60px;
+                width: 50px;
+                height: 70px;
             }
             
             .card.on-table {
-                width: 42px !important;
-                height: 60px !important;
+                width: 50px !important;
+                height: 70px !important;
             }
         }
         
@@ -882,57 +882,57 @@
             }
             
             .card {
-                width: 32px;
-                height: 46px;
+                width: 42px;
+                height: 60px;
             }
             
             .card-corner-value {
-                font-size: 8px;
+                font-size: 9px;
             }
             
             .card-corner-suit {
-                font-size: 7px;
+                font-size: 8px;
             }
             
             .card-center {
-                font-size: 14px;
+                font-size: 18px;
             }
             
             .card-corner-top {
-                top: 1px;
+                top: 2px;
                 left: 2px;
             }
             
             .card-corner-bottom {
-                bottom: 1px;
+                bottom: 2px;
                 right: 2px;
             }
             
             .table-area {
-                height: 65px;
-                gap: 4px;
+                height: 72px;
+                gap: 6px;
             }
             
             .table-card-slot {
-                width: 36px;
-                height: 52px;
+                width: 44px;
+                height: 62px;
             }
             
             .card.on-table {
-                width: 36px !important;
-                height: 52px !important;
+                width: 44px !important;
+                height: 62px !important;
             }
             
             .card.on-table .card-corner-value {
-                font-size: 9px;
+                font-size: 10px;
             }
             
             .card.on-table .card-corner-suit {
-                font-size: 8px;
+                font-size: 9px;
             }
             
             .card.on-table .card-center {
-                font-size: 16px;
+                font-size: 18px;
             }
         }
         
@@ -1387,8 +1387,9 @@
         let dragStartX = 0, dragStartY = 0;
         let dragOffsetX = 0, dragOffsetY = 0;
         let cardOriginalPos = { x: 0, y: 0, angle: 0 };
-        let dragThreshold = 50; // Порог для применения карты (пикселей вниз)
+        let dragThreshold = 100; // Порог для применения карты (пикселей вниз) - увеличен
         let dragHandlersSetup = false;
+        let isProcessingCard = false; // Защита от двойного тапа
         
         function renderCards() {
             cardsContainer.innerHTML = '';
@@ -1396,15 +1397,15 @@
             const totalCards = deck.length;
             const screenWidth = window.innerWidth;
             
-            // Размер карты
-            let cardW = screenWidth <= 380 ? 32 : (screenWidth <= 480 ? 38 : 44);
-            let cardH = screenWidth <= 380 ? 46 : (screenWidth <= 480 ? 54 : 62);
+            // Размер карты - БОЛЬШЕ для удобства
+            let cardW = screenWidth <= 380 ? 42 : (screenWidth <= 480 ? 48 : 52);
+            let cardH = screenWidth <= 380 ? 60 : (screenWidth <= 480 ? 68 : 74);
             
             // Веер - полукруг снизу
-            const totalAngle = 120; // Компактнее
+            const totalAngle = 100; // Компактнее для больших карт
             const startAngle = -totalAngle / 2;
             const angleStep = totalAngle / (totalCards - 1);
-            const radius = screenWidth <= 380 ? 100 : (screenWidth <= 480 ? 120 : 140);
+            const radius = screenWidth <= 380 ? 90 : (screenWidth <= 480 ? 105 : 120);
             
             // Создаём фрагмент для оптимизации
             const fragment = document.createDocumentFragment();
@@ -1558,6 +1559,10 @@
             if (gameEnded) return;
             if (cardEl.classList.contains('flipped')) return;
             if (selectedCards.length >= 4) return;
+            if (isProcessingCard) return; // Защита от двойного тапа
+            
+            isProcessingCard = true;
+            setTimeout(() => { isProcessingCard = false; }, 300); // Разблокируем через 300мс
             
             triggerHapticFeedback('light');
             
