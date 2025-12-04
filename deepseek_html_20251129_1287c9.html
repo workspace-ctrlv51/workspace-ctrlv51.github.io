@@ -89,7 +89,7 @@
             height: 150px;
             font-size: 20px;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
             font-weight: 600;
             will-change: transform, box-shadow;
             transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1);
@@ -98,8 +98,9 @@
             appearance: none;
             touch-action: manipulation;
             -webkit-touch-callout: none;
-            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), 
-                        box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+            /* Плавный возврат после отпускания */
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        box-shadow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                         background-color 0.2s ease;
         }
         
@@ -108,7 +109,8 @@
         }
         
         #generate-btn.pressed {
-            transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
+            /* Мгновенное нажатие */
+            transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
         }
         
         #generate-btn:disabled {
@@ -1007,14 +1009,12 @@
             
             loadData();
             
-            // Обработчики событий
-            generateBtn.addEventListener('click', generateNumber);
+            // Флаг для предотвращения двойного срабатывания
+            let isTouchDevice = false;
             
             // 3D эффект "вдавливания" - нажал справа, правая сторона уходит вглубь
             function handleButtonPress(e) {
                 if (generateBtn.disabled) return;
-                
-                e.preventDefault(); // Предотвращаем лупу и зум
                 
                 const rect = generateBtn.getBoundingClientRect();
                 const centerX = rect.width / 2;
@@ -1022,6 +1022,7 @@
                 
                 let touchX, touchY;
                 if (e.touches && e.touches[0]) {
+                    isTouchDevice = true;
                     touchX = e.touches[0].clientX - rect.left;
                     touchY = e.touches[0].clientY - rect.top;
                 } else {
@@ -1033,40 +1034,62 @@
                 const offsetX = (touchX - centerX) / centerX;
                 const offsetY = (touchY - centerY) / centerY;
                 
-                // Ограничиваем и сглаживаем
-                const smoothX = Math.max(-1, Math.min(1, offsetX)) * 0.8;
-                const smoothY = Math.max(-1, Math.min(1, offsetY)) * 0.8;
+                // Ограничиваем
+                const clampX = Math.max(-1, Math.min(1, offsetX));
+                const clampY = Math.max(-1, Math.min(1, offsetY));
                 
                 // Вдавливание: нажал справа -> правая сторона уходит вглубь
-                // rotateY положительный = левая сторона к нам, правая от нас
-                // rotateX отрицательный = верх к нам, низ от нас
-                const rotateY = smoothX * 10;
-                const rotateX = -smoothY * 10;
-                
-                // Тень смещается в противоположную сторону от нажатия
-                const shadowX = -smoothX * 8;
-                const shadowY = -smoothY * 8;
+                const rotateY = clampX * 8;
+                const rotateX = -clampY * 8;
                 
                 generateBtn.classList.add('pressed');
-                generateBtn.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(0.96)`;
-                generateBtn.style.boxShadow = `${shadowX}px ${shadowY + 4}px 15px rgba(0, 0, 0, 0.3)`;
+                generateBtn.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(0.97)`;
+                generateBtn.style.boxShadow = `0 2px 8px rgba(0, 0, 0, 0.2)`;
             }
             
-            function handleButtonRelease() {
+            function handleButtonRelease(e) {
                 generateBtn.classList.remove('pressed');
                 generateBtn.style.transform = '';
                 generateBtn.style.boxShadow = '';
+                
+                // Вызываем генерацию для touch устройств
+                if (e.type === 'touchend' && !generateBtn.disabled) {
+                    generateNumber();
+                }
             }
             
             // Touch события
-            generateBtn.addEventListener('touchstart', handleButtonPress, { passive: false });
+            generateBtn.addEventListener('touchstart', handleButtonPress, { passive: true });
             generateBtn.addEventListener('touchend', handleButtonRelease, { passive: true });
-            generateBtn.addEventListener('touchcancel', handleButtonRelease, { passive: true });
+            generateBtn.addEventListener('touchcancel', function() {
+                generateBtn.classList.remove('pressed');
+                generateBtn.style.transform = '';
+                generateBtn.style.boxShadow = '';
+            }, { passive: true });
             
             // Mouse события для десктопа
-            generateBtn.addEventListener('mousedown', handleButtonPress);
-            generateBtn.addEventListener('mouseup', handleButtonRelease);
-            generateBtn.addEventListener('mouseleave', handleButtonRelease);
+            generateBtn.addEventListener('mousedown', function(e) {
+                if (!isTouchDevice) handleButtonPress(e);
+            });
+            generateBtn.addEventListener('mouseup', function(e) {
+                if (!isTouchDevice) {
+                    generateBtn.classList.remove('pressed');
+                    generateBtn.style.transform = '';
+                    generateBtn.style.boxShadow = '';
+                }
+            });
+            generateBtn.addEventListener('mouseleave', function() {
+                generateBtn.classList.remove('pressed');
+                generateBtn.style.transform = '';
+                generateBtn.style.boxShadow = '';
+            });
+            
+            // Click для mouse (не сработает на touch т.к. уже обработано в touchend)
+            generateBtn.addEventListener('click', function(e) {
+                if (!isTouchDevice) {
+                    generateNumber();
+                }
+            });
             
             bottomLeftArea.addEventListener('click', openStats);
             bottomRightArea.addEventListener('click', openSettings);
