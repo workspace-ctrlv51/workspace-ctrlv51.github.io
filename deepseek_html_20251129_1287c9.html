@@ -85,27 +85,28 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             font-weight: 600;
             will-change: transform;
-            transform: translateZ(0);
+            transform: perspective(300px) translateZ(0);
+            transform-style: preserve-3d;
             backface-visibility: hidden;
             -webkit-appearance: none;
             appearance: none;
-            transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-                        background-color 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        box-shadow 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        background-color 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         
         #generate-btn:hover {
             background-color: #333;
-            transform: translateZ(0) scale(1.05);
         }
         
-        #generate-btn:active {
-            transform: translateZ(0) scale(0.95);
+        #generate-btn.pressed {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         #generate-btn:disabled {
             background-color: #999;
             cursor: not-allowed;
-            transform: translateZ(0);
+            transform: perspective(300px) translateZ(0);
             box-shadow: none;
         }
         
@@ -1000,14 +1001,49 @@
             // Обработчики событий
             generateBtn.addEventListener('click', generateNumber);
             
-            // Touch события для лучшей отзывчивости на iOS
-            generateBtn.addEventListener('touchstart', function(e) {
-                this.style.transform = 'translateZ(0) scale(0.95)';
-            }, { passive: true });
+            // 3D эффект прогиба кнопки в месте нажатия
+            function handleButtonPress(e) {
+                if (generateBtn.disabled) return;
+                
+                const rect = generateBtn.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                let clientX, clientY;
+                if (e.touches && e.touches[0]) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                // Вычисляем смещение от центра (-1 до 1)
+                const offsetX = (clientX - centerX) / (rect.width / 2);
+                const offsetY = (clientY - centerY) / (rect.height / 2);
+                
+                // Наклон в противоположную сторону от нажатия (до 8 градусов)
+                const rotateX = -offsetY * 8;
+                const rotateY = offsetX * 8;
+                
+                generateBtn.classList.add('pressed');
+                generateBtn.style.transform = `perspective(300px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(0.97)`;
+            }
             
-            generateBtn.addEventListener('touchend', function(e) {
-                this.style.transform = '';
-            }, { passive: true });
+            function handleButtonRelease() {
+                generateBtn.classList.remove('pressed');
+                generateBtn.style.transform = '';
+            }
+            
+            // Touch события
+            generateBtn.addEventListener('touchstart', handleButtonPress, { passive: true });
+            generateBtn.addEventListener('touchend', handleButtonRelease, { passive: true });
+            generateBtn.addEventListener('touchcancel', handleButtonRelease, { passive: true });
+            
+            // Mouse события для десктопа
+            generateBtn.addEventListener('mousedown', handleButtonPress);
+            generateBtn.addEventListener('mouseup', handleButtonRelease);
+            generateBtn.addEventListener('mouseleave', handleButtonRelease);
             
             bottomLeftArea.addEventListener('click', openStats);
             bottomRightArea.addEventListener('click', openSettings);
