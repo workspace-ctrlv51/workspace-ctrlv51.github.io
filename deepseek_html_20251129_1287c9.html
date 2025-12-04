@@ -235,23 +235,8 @@
         .cards-header {
             position: absolute;
             top: 10px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
+            left: 10px;
             z-index: 50;
-        }
-        
-        .cards-info {
-            font-size: 16px;
-            font-weight: 500;
-            color: #333;
-            background: rgba(255,255,255,0.95);
-            padding: 8px 16px;
-            border-radius: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         
         .cards-container {
@@ -870,7 +855,6 @@
     <div id="cards-page">
         <div class="cards-header">
             <button class="back-btn" id="cards-back-btn">←</button>
-            <div class="cards-info"><span id="selected-count">0</span> / 4</div>
         </div>
         
         <div class="hand hand-left">🤚</div>
@@ -1004,7 +988,6 @@
         const cardsPage = document.getElementById('cards-page');
         const cardsContainer = document.getElementById('cards-container');
         const cardsBackBtn = document.getElementById('cards-back-btn');
-        const selectedCountSpan = document.getElementById('selected-count');
         const cardsResultText = document.getElementById('cards-result-text');
         const restartCardsBtn = document.getElementById('restart-cards-btn');
         
@@ -1257,7 +1240,6 @@
             isProcessingCard = false;
             cardsResultText.textContent = '';
             restartCardsBtn.style.display = 'none';
-            selectedCountSpan.textContent = '0';
             
             createDeck();
             renderCards();
@@ -1328,8 +1310,6 @@
                 color: cardEl.dataset.color,
                 value: cardEl.dataset.value
             });
-            
-            selectedCountSpan.textContent = selectedCards.length;
             
             if (selectedCards.length === 4) {
                 setTimeout(checkResult, 300);
