@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Генератор чисел</title>
+    <title>Генератор</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -20,9 +20,8 @@
             touch-action: manipulation;
         }
         
-        /* Отключаем лупу и зум на iOS */
         input, textarea, button, select {
-            font-size: 16px !important; /* iOS не зумит если размер >= 16px */
+            font-size: 16px !important;
             touch-action: manipulation;
         }
         
@@ -56,17 +55,99 @@
             -webkit-overflow-scrolling: touch;
         }
         
-        /* Главная страница */
-        #main-page {
+        /* ============ МЕНЮ ВЫБОРА РЕЖИМА ============ */
+        #mode-select-page {
             width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 40px;
+        }
+        
+        .mode-title {
+            font-size: 24px;
+            font-weight: 300;
+            color: #333;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .mode-buttons {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .mode-btn {
+            width: 120px;
+            height: 140px;
+            background: white;
+            border: none;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .mode-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .mode-btn:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .mode-icon {
+            font-size: 48px;
+            line-height: 1;
+        }
+        
+        .mode-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            letter-spacing: 1px;
+        }
+        
+        /* ============ ГЛАВНАЯ СТРАНИЦА ЧИСЕЛ ============ */
+        #main-page {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             will-change: transform;
             transform: translateZ(0);
             position: relative;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 44px;
+            height: 44px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .back-btn:active {
+            background: rgba(0,0,0,0.05);
         }
         
         #number-display {
@@ -98,7 +179,6 @@
             appearance: none;
             touch-action: manipulation;
             -webkit-touch-callout: none;
-            /* Плавный возврат после отпускания */
             transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
                         box-shadow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                         background-color 0.2s ease;
@@ -109,7 +189,6 @@
         }
         
         #generate-btn.pressed {
-            /* Мгновенное нажатие */
             transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
         }
         
@@ -129,7 +208,6 @@
             height: 80px;
             cursor: pointer;
             z-index: 100;
-            /* background: rgba(255,0,0,0.1); */ /* раскомментировать для отладки */
         }
         
         #bottom-right-area {
@@ -140,10 +218,204 @@
             height: 80px;
             cursor: pointer;
             z-index: 100;
-            /* background: rgba(0,0,255,0.1); */ /* раскомментировать для отладки */
         }
         
-        /* Страница настроек */
+        /* ============ СТРАНИЦА КАРТ ============ */
+        #cards-page {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cards-header {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            z-index: 50;
+        }
+        
+        .cards-info {
+            font-size: 14px;
+            color: #666;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 14px;
+            border-radius: 20px;
+        }
+        
+        .cards-container {
+            position: relative;
+            width: 100%;
+            height: 60%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Руки держащие карты */
+        .hand {
+            position: absolute;
+            font-size: 60px;
+            opacity: 0.15;
+            z-index: 1;
+            filter: grayscale(1);
+        }
+        
+        .hand-left {
+            left: 5%;
+            bottom: 20%;
+            transform: scaleX(-1) rotate(-20deg);
+        }
+        
+        .hand-right {
+            right: 5%;
+            bottom: 20%;
+            transform: rotate(20deg);
+        }
+        
+        /* Веер карт */
+        .card {
+            position: absolute;
+            width: 70px;
+            height: 100px;
+            border-radius: 8px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.4s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+        
+        .card:hover {
+            z-index: 100 !important;
+            transform: translateY(-20px) scale(1.1) !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .card.selected {
+            z-index: 200 !important;
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+            border: 3px solid #444;
+        }
+        
+        .card-back::after {
+            content: '';
+            width: 50px;
+            height: 70px;
+            border: 2px solid #555;
+            border-radius: 4px;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 3px,
+                #444 3px,
+                #444 6px
+            );
+        }
+        
+        .card-front {
+            background: white;
+            border: 1px solid #ddd;
+            transform: rotateY(180deg);
+            flex-direction: column;
+            font-weight: bold;
+        }
+        
+        .card-value {
+            font-size: 28px;
+            line-height: 1;
+        }
+        
+        .card-suit {
+            font-size: 32px;
+            line-height: 1;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg) !important;
+        }
+        
+        .card.flipped:hover {
+            transform: rotateY(180deg) translateY(-10px) scale(1.05) !important;
+        }
+        
+        /* Цвета мастей */
+        .card-front.hearts, .card-front.diamonds {
+            color: #e74c3c;
+        }
+        
+        .card-front.spades, .card-front.clubs {
+            color: #1a1a1a;
+        }
+        
+        /* Результат игры */
+        .cards-result {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .result-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            min-height: 24px;
+        }
+        
+        .result-win {
+            color: #27ae60;
+        }
+        
+        .result-lose {
+            color: #e74c3c;
+        }
+        
+        .restart-btn {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        
+        .restart-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .restart-btn:hover {
+            background: #333;
+        }
+        
+        /* ============ СТРАНИЦА НАСТРОЕК ============ */
         #settings-page {
             position: fixed;
             top: 0;
@@ -157,7 +429,7 @@
             padding-bottom: max(20px, env(safe-area-inset-bottom));
             display: none;
             flex-direction: column;
-            z-index: 20;
+            z-index: 200;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
@@ -262,7 +534,7 @@
             border-radius: 8px;
         }
         
-        /* Страница статистики */
+        /* ============ СТРАНИЦА СТАТИСТИКИ ============ */
         #stats-page {
             position: fixed;
             top: 0;
@@ -273,7 +545,7 @@
             background-color: white;
             display: none;
             flex-direction: column;
-            z-index: 20;
+            z-index: 200;
             overflow: hidden;
             will-change: transform;
             transform: translateZ(0);
@@ -409,23 +681,25 @@
             color: #666;
         }
         
-        /* Анимация для появления числа - оптимизированная для 120Hz */
+        /* Анимации */
         @keyframes pop {
-            0% { 
-                transform: translateZ(0) scale(0.8); 
-                opacity: 0; 
-            }
-            70% { 
-                transform: translateZ(0) scale(1.1); 
-            }
-            100% { 
-                transform: translateZ(0) scale(1); 
-                opacity: 1; 
-            }
+            0% { transform: translateZ(0) scale(0.8); opacity: 0; }
+            70% { transform: translateZ(0) scale(1.1); }
+            100% { transform: translateZ(0) scale(1); opacity: 1; }
         }
         
         .pop-animation {
             animation: pop 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        @keyframes dealCard {
+            0% { 
+                opacity: 0;
+                transform: translate(-50%, -50%) rotate(0deg) scale(0.5);
+            }
+            100% { 
+                opacity: 1;
+            }
         }
         
         /* Мобильная адаптация */
@@ -441,52 +715,34 @@
                 font-size: 18px;
             }
             
-            .chart-container {
-                padding: 60px 10px 20px;
-                padding-top: calc(60px + env(safe-area-inset-top));
-                padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            .mode-buttons {
+                gap: 20px;
             }
             
-            .chart-content {
-                width: 95%;
-                height: 65%;
+            .mode-btn {
+                width: 100px;
+                height: 120px;
             }
             
-            #stats-chart {
-                gap: 6px;
+            .mode-icon {
+                font-size: 40px;
             }
             
-            .chart-bar {
-                max-width: 30px;
+            .card {
+                width: 55px;
+                height: 80px;
             }
             
-            .chart-labels {
-                gap: 6px;
+            .card-value {
+                font-size: 22px;
             }
             
-            .chart-label {
-                max-width: 30px;
-                font-size: 11px;
+            .card-suit {
+                font-size: 26px;
             }
             
-            .y-axis {
-                width: 25px;
-            }
-            
-            .y-label {
-                font-size: 9px;
-            }
-            
-            .page-header {
-                margin-bottom: 20px;
-            }
-            
-            .page-title {
-                font-size: 20px;
-            }
-            
-            #close-settings, #stats-close-btn {
-                font-size: 20px;
+            .hand {
+                font-size: 45px;
             }
         }
         
@@ -501,12 +757,20 @@
                 font-size: 16px;
             }
             
-            .chart-content {
-                height: 60%;
+            .card {
+                width: 45px;
+                height: 65px;
+            }
+            
+            .card-value {
+                font-size: 18px;
+            }
+            
+            .card-suit {
+                font-size: 22px;
             }
         }
         
-        /* Поддержка высокой частоты обновления экрана */
         @media (prefers-reduced-motion: no-preference) {
             * {
                 scroll-behavior: smooth;
@@ -515,14 +779,48 @@
     </style>
 </head>
 <body>
-    <!-- Главная страница -->
+    <!-- Страница выбора режима -->
+    <div id="mode-select-page">
+        <div class="mode-title">Выбери режим</div>
+        <div class="mode-buttons">
+            <button class="mode-btn" id="mode-numbers-btn">
+                <span class="mode-icon">🔢</span>
+                <span class="mode-label">Числа</span>
+            </button>
+            <button class="mode-btn" id="mode-cards-btn">
+                <span class="mode-icon">🃏</span>
+                <span class="mode-label">Карты</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Главная страница чисел -->
     <div id="main-page">
+        <button class="back-btn" id="numbers-back-btn">←</button>
         <div id="number-display">0</div>
         <button id="generate-btn">НАЖМИ</button>
-        
-        <!-- Невидимые области управления -->
         <div id="bottom-left-area"></div>
         <div id="bottom-right-area"></div>
+    </div>
+    
+    <!-- Страница карт -->
+    <div id="cards-page">
+        <div class="cards-header">
+            <button class="back-btn" id="cards-back-btn">←</button>
+            <div class="cards-info">Выбрано: <span id="selected-count">0</span>/4</div>
+        </div>
+        
+        <div class="hand hand-left">🤚</div>
+        <div class="hand hand-right">🤚</div>
+        
+        <div class="cards-container" id="cards-container">
+            <!-- Карты генерируются динамически -->
+        </div>
+        
+        <div class="cards-result">
+            <div class="result-text" id="cards-result-text"></div>
+            <button class="restart-btn" id="restart-cards-btn" style="display: none;">Ещё раз</button>
+        </div>
     </div>
     
     <!-- Страница настроек -->
@@ -564,113 +862,88 @@
         </div>
         <div class="chart-container">
             <div class="chart-content">
-                <div class="y-axis" id="y-axis">
-                    <!-- Легенда будет создана динамически -->
-                </div>
+                <div class="y-axis" id="y-axis"></div>
                 <div class="chart-main">
-                    <div class="grid-lines" id="grid-lines">
-                        <!-- Линии сетки будут созданы динамически -->
-                    </div>
-                    <div id="stats-chart">
-                        <!-- График будет создан динамически -->
-                    </div>
-                    <div id="chart-labels" class="chart-labels">
-                        <!-- Легенда будет создана динамически -->
-                    </div>
+                    <div class="grid-lines" id="grid-lines"></div>
+                    <div id="stats-chart"></div>
+                    <div id="chart-labels" class="chart-labels"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Telegram Web App инициализация
+        // Telegram Web App
         let tgApp = null;
         
         function initTelegramWebApp() {
             if (window.Telegram && window.Telegram.WebApp) {
                 tgApp = window.Telegram.WebApp;
-                
-                // Сообщаем Telegram что приложение готово
                 tgApp.ready();
-                
-                // Разворачиваем на весь экран
                 tgApp.expand();
-                
-                // Отключаем закрытие свайпом вниз
-                if (tgApp.disableVerticalSwipes) {
-                    tgApp.disableVerticalSwipes();
-                }
-                
-                // Устанавливаем цвет header bar
-                if (tgApp.setHeaderColor) {
-                    tgApp.setHeaderColor('#f5f5f5');
-                }
-                
-                // Устанавливаем цвет фона
-                if (tgApp.setBackgroundColor) {
-                    tgApp.setBackgroundColor('#f5f5f5');
-                }
-                
-                // Обработчик изменения viewport (когда пользователь разворачивает/сворачивает)
+                if (tgApp.disableVerticalSwipes) tgApp.disableVerticalSwipes();
+                if (tgApp.setHeaderColor) tgApp.setHeaderColor('#f5f5f5');
+                if (tgApp.setBackgroundColor) tgApp.setBackgroundColor('#f5f5f5');
                 tgApp.onEvent('viewportChanged', handleViewportChange);
-                
-                // Первоначальная настройка размеров
                 handleViewportChange();
-                
-                // Повторная попытка развернуть через небольшую задержку (фикс для некоторых версий)
-                setTimeout(() => {
-                    if (tgApp.expand) {
-                        tgApp.expand();
-                    }
-                    handleViewportChange();
-                }, 100);
-                
-                // Ещё одна попытка после полной загрузки
-                setTimeout(() => {
-                    if (tgApp.expand) {
-                        tgApp.expand();
-                    }
-                    handleViewportChange();
-                }, 500);
+                setTimeout(() => { tgApp.expand(); handleViewportChange(); }, 100);
+                setTimeout(() => { tgApp.expand(); handleViewportChange(); }, 500);
             }
         }
         
         function handleViewportChange() {
-            // Обновляем высоту body под текущий viewport Telegram
             if (tgApp && tgApp.viewportHeight) {
                 const vh = tgApp.viewportHeight;
                 document.body.style.height = vh + 'px';
                 document.body.style.minHeight = vh + 'px';
-                
-                // Обновляем CSS переменную для использования в стилях
-                document.documentElement.style.setProperty('--tg-viewport-height', vh + 'px');
-                
-                // Обновляем страницы
-                const settingsPage = document.getElementById('settings-page');
-                const statsPage = document.getElementById('stats-page');
-                
-                if (settingsPage) {
-                    settingsPage.style.height = vh + 'px';
-                }
-                if (statsPage) {
-                    statsPage.style.height = vh + 'px';
-                }
             }
-            
-            // Форсируем перерисовку для iOS
-            requestAnimationFrame(() => {
-                document.body.style.display = 'none';
-                document.body.offsetHeight; // Триггер reflow
-                document.body.style.display = 'flex';
-            });
         }
         
-        // Элементы DOM
+        // Вибрация
+        function triggerHapticFeedback(type = 'light') {
+            try {
+                if (tgApp && tgApp.HapticFeedback) {
+                    switch(type) {
+                        case 'light': tgApp.HapticFeedback.impactOccurred('light'); break;
+                        case 'medium': tgApp.HapticFeedback.impactOccurred('medium'); break;
+                        case 'success': tgApp.HapticFeedback.notificationOccurred('success'); break;
+                        case 'error': tgApp.HapticFeedback.notificationOccurred('error'); break;
+                        case 'selection': tgApp.HapticFeedback.selectionChanged(); break;
+                        default: tgApp.HapticFeedback.impactOccurred('light');
+                    }
+                    return;
+                }
+                if (navigator.vibrate) {
+                    switch(type) {
+                        case 'light': navigator.vibrate(10); break;
+                        case 'medium': navigator.vibrate(30); break;
+                        case 'success': navigator.vibrate([10, 50, 10]); break;
+                        case 'error': navigator.vibrate([50, 30, 50]); break;
+                        case 'selection': navigator.vibrate(5); break;
+                        default: navigator.vibrate(10);
+                    }
+                }
+            } catch (e) {}
+        }
+        
+        // ============ ЭЛЕМЕНТЫ DOM ============
+        const modeSelectPage = document.getElementById('mode-select-page');
+        const modeNumbersBtn = document.getElementById('mode-numbers-btn');
+        const modeCardsBtn = document.getElementById('mode-cards-btn');
+        
         const mainPage = document.getElementById('main-page');
         const numberDisplay = document.getElementById('number-display');
         const generateBtn = document.getElementById('generate-btn');
         const bottomLeftArea = document.getElementById('bottom-left-area');
         const bottomRightArea = document.getElementById('bottom-right-area');
+        const numbersBackBtn = document.getElementById('numbers-back-btn');
+        
+        const cardsPage = document.getElementById('cards-page');
+        const cardsContainer = document.getElementById('cards-container');
+        const cardsBackBtn = document.getElementById('cards-back-btn');
+        const selectedCountSpan = document.getElementById('selected-count');
+        const cardsResultText = document.getElementById('cards-result-text');
+        const restartCardsBtn = document.getElementById('restart-cards-btn');
         
         const settingsPage = document.getElementById('settings-page');
         const closeSettings = document.getElementById('close-settings');
@@ -688,62 +961,39 @@
         const yAxis = document.getElementById('y-axis');
         const gridLines = document.getElementById('grid-lines');
         
-        // Переменные состояния
+        // ============ СОСТОЯНИЕ ЧИСЕЛ ============
         let clickCount = 0;
         let maxClicks = 100;
         let minRange = 0;
         let maxRange = 10;
-        let numberStats = {}; // Статистика по числам {число: количество}
+        let numberStats = {};
         
-        // Функция для лёгкого виброотклика
-        function triggerHapticFeedback(type = 'light') {
-            try {
-                // Telegram Web App API - приоритет
-                if (tgApp && tgApp.HapticFeedback) {
-                    switch(type) {
-                        case 'light':
-                            tgApp.HapticFeedback.impactOccurred('light');
-                            break;
-                        case 'medium':
-                            tgApp.HapticFeedback.impactOccurred('medium');
-                            break;
-                        case 'success':
-                            tgApp.HapticFeedback.notificationOccurred('success');
-                            break;
-                        case 'selection':
-                            tgApp.HapticFeedback.selectionChanged();
-                            break;
-                        default:
-                            tgApp.HapticFeedback.impactOccurred('light');
-                    }
-                    return;
-                }
-                
-                // Fallback для браузеров
-                if (navigator.vibrate) {
-                    switch(type) {
-                        case 'light':
-                            navigator.vibrate(10);
-                            break;
-                        case 'medium':
-                            navigator.vibrate(30);
-                            break;
-                        case 'success':
-                            navigator.vibrate([10, 50, 10]);
-                            break;
-                        case 'selection':
-                            navigator.vibrate(5);
-                            break;
-                        default:
-                            navigator.vibrate(10);
-                    }
-                }
-            } catch (e) {
-                // Игнорируем ошибки вибрации
+        // ============ СОСТОЯНИЕ КАРТ ============
+        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const suitSymbols = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        let deck = [];
+        let selectedCards = [];
+        let gameEnded = false;
+        
+        // ============ НАВИГАЦИЯ ============
+        function showPage(page) {
+            modeSelectPage.style.display = 'none';
+            mainPage.style.display = 'none';
+            cardsPage.style.display = 'none';
+            
+            if (page === 'mode') {
+                modeSelectPage.style.display = 'flex';
+            } else if (page === 'numbers') {
+                mainPage.style.display = 'flex';
+            } else if (page === 'cards') {
+                cardsPage.style.display = 'flex';
+                initCardsGame();
             }
+            triggerHapticFeedback('selection');
         }
         
-        // Загрузка сохраненных данных
+        // ============ ЛОГИКА ЧИСЕЛ ============
         function loadData() {
             try {
                 const savedClickCount = localStorage.getItem('clickCount');
@@ -757,26 +1007,17 @@
                 if (savedMinRange) minRange = parseInt(savedMinRange);
                 if (savedMaxRange) maxRange = parseInt(savedMaxRange);
                 if (savedNumberStats) numberStats = JSON.parse(savedNumberStats);
-            } catch (e) {
-                // Если localStorage недоступен
-            }
+            } catch (e) {}
             
-            // Обновление UI
             sessionClicksSpan.textContent = clickCount;
             maxClicksInput.value = maxClicks;
             minRangeInput.value = minRange;
             maxRangeInput.value = maxRange;
             
-            // Проверка лимита нажатий
-            if (clickCount >= maxClicks) {
-                generateBtn.disabled = true;
-            }
-            
-            // Обновление статистики
+            if (clickCount >= maxClicks) generateBtn.disabled = true;
             updateStatsDisplay();
         }
         
-        // Сохранение данных
         function saveData() {
             try {
                 localStorage.setItem('clickCount', clickCount);
@@ -784,45 +1025,29 @@
                 localStorage.setItem('minRange', minRange);
                 localStorage.setItem('maxRange', maxRange);
                 localStorage.setItem('numberStats', JSON.stringify(numberStats));
-            } catch (e) {
-                // Если localStorage недоступен
-            }
+            } catch (e) {}
         }
         
-        // Генерация случайного числа
         function generateNumber() {
             if (clickCount >= maxClicks) return;
             
-            // Лёгкий виброотклик
             triggerHapticFeedback('light');
             
-            // Генерация числа
             const randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
             
-            // Анимация появления числа с использованием requestAnimationFrame для плавности
             requestAnimationFrame(() => {
                 numberDisplay.classList.remove('pop-animation');
-                // Форсируем reflow для перезапуска анимации
                 void numberDisplay.offsetWidth;
                 numberDisplay.textContent = randomNum;
                 numberDisplay.classList.add('pop-animation');
             });
             
-            // Обновление статистики
-            if (numberStats[randomNum]) {
-                numberStats[randomNum]++;
-            } else {
-                numberStats[randomNum] = 1;
-            }
-            
-            // Увеличение счетчика
+            numberStats[randomNum] = (numberStats[randomNum] || 0) + 1;
             clickCount++;
             sessionClicksSpan.textContent = clickCount;
             
-            // Проверка лимита
             if (clickCount >= maxClicks) {
                 generateBtn.disabled = true;
-                // Виброотклик при достижении лимита
                 setTimeout(() => triggerHapticFeedback('success'), 100);
             }
             
@@ -830,7 +1055,6 @@
             updateStatsDisplay();
         }
         
-        // Сброс сессии
         function resetSession() {
             clickCount = 0;
             numberStats = {};
@@ -839,107 +1063,59 @@
             generateBtn.disabled = false;
             saveData();
             updateStatsDisplay();
-            
-            // Виброотклик при сбросе
             triggerHapticFeedback('medium');
         }
         
-        // Обновление настроек
         function updateSettings() {
             maxClicks = parseInt(maxClicksInput.value) || 100;
             minRange = parseInt(minRangeInput.value) || 0;
             maxRange = parseInt(maxRangeInput.value) || 10;
             
-            // Корректировка диапазона
             if (minRange > maxRange) {
                 maxRange = minRange + 1;
                 maxRangeInput.value = maxRange;
             }
             
-            // Проверка лимита нажатий
-            if (clickCount >= maxClicks) {
-                generateBtn.disabled = true;
-            } else {
-                generateBtn.disabled = false;
-            }
-            
+            generateBtn.disabled = clickCount >= maxClicks;
             saveData();
             updateStatsDisplay();
         }
         
-        // Открытие настроек
         function openSettings() {
             settingsPage.style.display = 'flex';
-            mainPage.style.display = 'none';
-            
-            // Обновляем высоту для Telegram
-            if (tgApp && tgApp.viewportHeight) {
-                settingsPage.style.height = tgApp.viewportHeight + 'px';
-            }
-            
-            // Лёгкий виброотклик при открытии настроек
             triggerHapticFeedback('selection');
         }
         
-        // Закрытие настроек
         function closeSettingsPanel() {
             settingsPage.style.display = 'none';
-            mainPage.style.display = 'flex';
-            
-            // Лёгкий виброотклик при закрытии настроек
             triggerHapticFeedback('selection');
         }
         
-        // Открытие статистики
         function openStats() {
             updateStatsDisplay();
             statsPage.style.display = 'flex';
-            mainPage.style.display = 'none';
-            
-            // Обновляем высоту для Telegram
-            if (tgApp && tgApp.viewportHeight) {
-                statsPage.style.height = tgApp.viewportHeight + 'px';
-            }
-            
-            // Лёгкий виброотклик при открытии статистики
             triggerHapticFeedback('selection');
         }
         
-        // Закрытие статистики
         function closeStatsPanel() {
             statsPage.style.display = 'none';
-            mainPage.style.display = 'flex';
-            
-            // Лёгкий виброотклик при закрытии статистики
             triggerHapticFeedback('selection');
         }
         
-        // Обновление отображения статистики
         function updateStatsDisplay() {
-            // Очистка графика и легенды
             statsChart.innerHTML = '';
             chartLabels.innerHTML = '';
             yAxis.innerHTML = '';
             gridLines.innerHTML = '';
             
-            // Создание графика и легенды
             if (Object.keys(numberStats).length > 0) {
                 const maxValue = Math.max(...Object.values(numberStats));
-                
-                // Создание легенды для оси Y
                 const step = Math.max(1, Math.ceil(maxValue / 4));
                 const yValues = [];
                 
-                for (let i = 0; i <= maxValue; i += step) {
-                    yValues.push(i);
-                }
+                for (let i = 0; i <= maxValue; i += step) yValues.push(i);
+                if (yValues[yValues.length - 1] !== maxValue) yValues.push(maxValue);
                 
-                // Если последнее значение не совпадает с maxValue, добавляем maxValue
-                if (yValues[yValues.length - 1] !== maxValue) {
-                    yValues.push(maxValue);
-                }
-                
-                // Создание подписей оси Y
                 yValues.reverse().forEach(value => {
                     const yLabel = document.createElement('div');
                     yLabel.className = 'y-label';
@@ -947,47 +1123,38 @@
                     yAxis.appendChild(yLabel);
                 });
                 
-                // Создание линий сетки
                 yValues.forEach(() => {
                     const gridLine = document.createElement('div');
                     gridLine.className = 'grid-line';
                     gridLines.appendChild(gridLine);
                 });
                 
-                // Создание столбцов графика
                 for (let i = minRange; i <= maxRange; i++) {
                     const count = numberStats[i] || 0;
                     const height = maxValue > 0 ? (count / maxValue) * 70 + 10 : 10;
                     
-                    // Создание столбца графика
                     const bar = document.createElement('div');
                     bar.className = 'chart-bar';
                     bar.style.height = `${height}%`;
-                    
                     statsChart.appendChild(bar);
                     
-                    // Создание подписи для легенды
                     const label = document.createElement('div');
                     label.className = 'chart-label';
                     label.textContent = i;
                     chartLabels.appendChild(label);
                 }
             } else {
-                // Если статистики нет, показываем пустой график
-                // Создание легенды для оси Y
                 const yLabel = document.createElement('div');
                 yLabel.className = 'y-label';
                 yLabel.textContent = '0';
                 yAxis.appendChild(yLabel);
                 
-                // Создание линий сетки
                 for (let i = 0; i < 5; i++) {
                     const gridLine = document.createElement('div');
                     gridLine.className = 'grid-line';
                     gridLines.appendChild(gridLine);
                 }
                 
-                // Пустые столбцы
                 for (let i = minRange; i <= maxRange; i++) {
                     const bar = document.createElement('div');
                     bar.className = 'chart-bar';
@@ -1002,17 +1169,160 @@
             }
         }
         
-        // Инициализация
-        function init() {
-            // Инициализируем Telegram Web App
-            initTelegramWebApp();
+        // ============ ЛОГИКА КАРТ ============
+        function createDeck() {
+            deck = [];
+            // Создаём полную колоду 52 карты
+            for (const suit of suits) {
+                for (const value of values) {
+                    deck.push({ suit, value });
+                }
+            }
+            // Перемешиваем колоду (алгоритм Фишера-Йетса)
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+        
+        function initCardsGame() {
+            selectedCards = [];
+            gameEnded = false;
+            cardsResultText.textContent = '';
+            cardsResultText.className = 'result-text';
+            restartCardsBtn.style.display = 'none';
+            selectedCountSpan.textContent = '0';
             
+            createDeck();
+            renderCards();
+        }
+        
+        function renderCards() {
+            cardsContainer.innerHTML = '';
+            
+            const totalCards = deck.length;
+            const containerWidth = cardsContainer.offsetWidth || 300;
+            const cardWidth = window.innerWidth <= 380 ? 45 : (window.innerWidth <= 480 ? 55 : 70);
+            
+            // Угол веера
+            const totalAngle = 160;
+            const startAngle = -totalAngle / 2;
+            const angleStep = totalAngle / (totalCards - 1);
+            
+            // Радиус веера
+            const radius = Math.min(containerWidth * 0.8, 280);
+            
+            deck.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card';
+                cardEl.dataset.index = index;
+                cardEl.dataset.suit = card.suit;
+                cardEl.dataset.value = card.value;
+                
+                // Рубашка
+                const backFace = document.createElement('div');
+                backFace.className = 'card-face card-back';
+                
+                // Лицевая сторона
+                const frontFace = document.createElement('div');
+                frontFace.className = `card-face card-front ${card.suit}`;
+                frontFace.innerHTML = `
+                    <span class="card-value">${card.value}</span>
+                    <span class="card-suit">${suitSymbols[card.suit]}</span>
+                `;
+                
+                cardEl.appendChild(backFace);
+                cardEl.appendChild(frontFace);
+                
+                // Позиционирование веером
+                const angle = startAngle + angleStep * index;
+                const rad = (angle * Math.PI) / 180;
+                const x = Math.sin(rad) * radius;
+                const y = -Math.cos(rad) * radius + radius * 0.3;
+                
+                cardEl.style.left = `calc(50% + ${x}px - ${cardWidth/2}px)`;
+                cardEl.style.top = `calc(50% + ${y}px)`;
+                cardEl.style.transform = `rotate(${angle}deg)`;
+                cardEl.style.zIndex = index;
+                
+                // Анимация появления
+                cardEl.style.opacity = '0';
+                cardEl.style.animation = `dealCard 0.3s ease forwards`;
+                cardEl.style.animationDelay = `${index * 0.02}s`;
+                
+                // Клик по карте
+                cardEl.addEventListener('click', () => handleCardClick(cardEl, index));
+                
+                cardsContainer.appendChild(cardEl);
+            });
+        }
+        
+        function handleCardClick(cardEl, index) {
+            if (gameEnded) return;
+            if (cardEl.classList.contains('flipped')) return;
+            if (selectedCards.length >= 4) return;
+            
+            triggerHapticFeedback('light');
+            
+            // Переворачиваем карту
+            cardEl.classList.add('flipped');
+            cardEl.classList.add('selected');
+            
+            selectedCards.push({
+                index,
+                suit: cardEl.dataset.suit,
+                value: cardEl.dataset.value
+            });
+            
+            selectedCountSpan.textContent = selectedCards.length;
+            
+            // Проверяем результат после 4 карт
+            if (selectedCards.length === 4) {
+                setTimeout(checkResult, 500);
+            }
+        }
+        
+        function checkResult() {
+            gameEnded = true;
+            
+            // Проверяем все ли карты одной масти
+            const firstSuit = selectedCards[0].suit;
+            const allSameSuit = selectedCards.every(card => card.suit === firstSuit);
+            
+            if (allSameSuit) {
+                cardsResultText.textContent = '🎉 Победа! Все карты одной масти!';
+                cardsResultText.className = 'result-text result-win';
+                triggerHapticFeedback('success');
+            } else {
+                // Считаем масти
+                const suitCounts = {};
+                selectedCards.forEach(card => {
+                    suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
+                });
+                const maxSuit = Math.max(...Object.values(suitCounts));
+                cardsResultText.textContent = `Не повезло. Максимум ${maxSuit} карты одной масти`;
+                cardsResultText.className = 'result-text result-lose';
+                triggerHapticFeedback('error');
+            }
+            
+            restartCardsBtn.style.display = 'inline-block';
+        }
+        
+        // ============ ИНИЦИАЛИЗАЦИЯ ============
+        function init() {
+            initTelegramWebApp();
             loadData();
             
-            // Флаг для предотвращения двойного срабатывания
+            // Навигация
+            modeNumbersBtn.addEventListener('click', () => showPage('numbers'));
+            modeCardsBtn.addEventListener('click', () => showPage('cards'));
+            numbersBackBtn.addEventListener('click', () => showPage('mode'));
+            cardsBackBtn.addEventListener('click', () => showPage('mode'));
+            restartCardsBtn.addEventListener('click', initCardsGame);
+            
+            // Кнопка генерации чисел
             let isTouchDevice = false;
             
-            // 3D эффект "вдавливания" - нажал справа, правая сторона уходит вглубь
             function handleButtonPress(e) {
                 if (generateBtn.disabled) return;
                 
@@ -1030,15 +1340,10 @@
                     touchY = e.clientY - rect.top;
                 }
                 
-                // Смещение от центра (-1 до 1)
                 const offsetX = (touchX - centerX) / centerX;
                 const offsetY = (touchY - centerY) / centerY;
-                
-                // Ограничиваем
                 const clampX = Math.max(-1, Math.min(1, offsetX));
                 const clampY = Math.max(-1, Math.min(1, offsetY));
-                
-                // Вдавливание: нажал справа -> правая сторона уходит вглубь
                 const rotateY = clampX * 8;
                 const rotateX = -clampY * 8;
                 
@@ -1051,46 +1356,33 @@
                 generateBtn.classList.remove('pressed');
                 generateBtn.style.transform = '';
                 generateBtn.style.boxShadow = '';
-                
-                // Вызываем генерацию для touch устройств
-                if (e.type === 'touchend' && !generateBtn.disabled) {
-                    generateNumber();
-                }
+                if (e.type === 'touchend' && !generateBtn.disabled) generateNumber();
             }
             
-            // Touch события
             generateBtn.addEventListener('touchstart', handleButtonPress, { passive: true });
             generateBtn.addEventListener('touchend', handleButtonRelease, { passive: true });
-            generateBtn.addEventListener('touchcancel', function() {
+            generateBtn.addEventListener('touchcancel', () => {
                 generateBtn.classList.remove('pressed');
                 generateBtn.style.transform = '';
                 generateBtn.style.boxShadow = '';
             }, { passive: true });
             
-            // Mouse события для десктопа
-            generateBtn.addEventListener('mousedown', function(e) {
-                if (!isTouchDevice) handleButtonPress(e);
-            });
-            generateBtn.addEventListener('mouseup', function(e) {
+            generateBtn.addEventListener('mousedown', (e) => { if (!isTouchDevice) handleButtonPress(e); });
+            generateBtn.addEventListener('mouseup', () => {
                 if (!isTouchDevice) {
                     generateBtn.classList.remove('pressed');
                     generateBtn.style.transform = '';
                     generateBtn.style.boxShadow = '';
                 }
             });
-            generateBtn.addEventListener('mouseleave', function() {
+            generateBtn.addEventListener('mouseleave', () => {
                 generateBtn.classList.remove('pressed');
                 generateBtn.style.transform = '';
                 generateBtn.style.boxShadow = '';
             });
+            generateBtn.addEventListener('click', () => { if (!isTouchDevice) generateNumber(); });
             
-            // Click для mouse (не сработает на touch т.к. уже обработано в touchend)
-            generateBtn.addEventListener('click', function(e) {
-                if (!isTouchDevice) {
-                    generateNumber();
-                }
-            });
-            
+            // Настройки и статистика
             bottomLeftArea.addEventListener('click', openStats);
             bottomRightArea.addEventListener('click', openSettings);
             closeSettings.addEventListener('click', closeSettingsPanel);
@@ -1098,78 +1390,35 @@
             resetBtn.addEventListener('click', resetSession);
             saveBtn.addEventListener('click', closeSettingsPanel);
             
-            // Сохранение настроек при изменении
             minRangeInput.addEventListener('change', updateSettings);
             maxRangeInput.addEventListener('change', updateSettings);
             maxClicksInput.addEventListener('change', updateSettings);
             
-            // Обработчики для удобного ввода в настройках
-            const inputs = [minRangeInput, maxRangeInput, maxClicksInput];
-            
-            // Закрытие клавиатуры при нажатии Enter
-            inputs.forEach(input => {
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        this.blur(); // Скрываем клавиатуру
-                    }
-                });
+            [minRangeInput, maxRangeInput, maxClicksInput].forEach(input => {
+                input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
             });
             
-            // Закрытие клавиатуры при клике вне поля ввода
-            document.addEventListener('click', function(e) {
-                if (!e.target.matches('input')) {
-                    // Если клик не по полю ввода, скрываем клавиатуру
-                    document.activeElement.blur();
-                }
+            document.addEventListener('click', (e) => {
+                if (!e.target.matches('input')) document.activeElement.blur();
             });
             
-            // Предотвращение масштабирования при двойном тапе
-            document.addEventListener('dblclick', function(e) {
-                e.preventDefault();
-            }, { passive: false });
+            document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
+            document.addEventListener('contextmenu', (e) => e.preventDefault(), { passive: false });
+            document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
             
-            // Предотвращение контекстного меню (лупа на iOS при долгом нажатии)
-            document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-            }, { passive: false });
-            
-            // Предотвращение жестов масштабирования
-            document.addEventListener('gesturestart', function(e) {
-                e.preventDefault();
-            }, { passive: false });
-            
-            // Предотвращение выделения текста
-            document.addEventListener('selectstart', function(e) {
-                if (!e.target.matches('input')) {
-                    e.preventDefault();
-                }
+            document.addEventListener('selectstart', (e) => {
+                if (!e.target.matches('input')) e.preventDefault();
             });
             
-            // Обработка изменения размера окна (для iOS Safari)
-            window.addEventListener('resize', () => {
-                requestAnimationFrame(() => {
-                    handleViewportChange();
-                });
-            });
+            window.addEventListener('resize', () => requestAnimationFrame(handleViewportChange));
+            window.addEventListener('orientationchange', () => setTimeout(handleViewportChange, 100));
             
-            // Обработка ориентации экрана
-            window.addEventListener('orientationchange', () => {
-                setTimeout(() => {
-                    handleViewportChange();
-                }, 100);
-            });
-            
-            // Предотвращение pull-to-refresh на iOS
-            document.body.addEventListener('touchmove', function(e) {
-                if (e.target.closest('#settings-page')) {
-                    // Разрешаем скролл в настройках
-                    return;
-                }
+            document.body.addEventListener('touchmove', (e) => {
+                if (e.target.closest('#settings-page')) return;
                 e.preventDefault();
             }, { passive: false });
         }
         
-        // Запуск приложения
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
