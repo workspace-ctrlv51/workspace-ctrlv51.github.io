@@ -200,6 +200,35 @@
             background: #222;
             color: #666;
         }
+        .sp-q {
+            margin-top: 15px;
+            padding: 10px;
+            background: #222;
+            border-radius: 8px;
+            min-height: 36px;
+        }
+        .sp-ql {
+            color: #555;
+            font-size: 9px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .sp-qi {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 2px;
+            font-weight: bold;
+        }
+        .sp-qi-r { background: #8b2635; color: #ffcdd2; }
+        .sp-qi-b { background: #1a237e; color: #c5cae9; }
+        .sp-qi-u { opacity: 0.3; text-decoration: line-through; }
+        .sp-qe { color: #444; font-size: 10px; font-style: italic; }
         
         /* ============ ГЛАВНАЯ СТРАНИЦА ЧИСЕЛ ============ */
         #main-page {
@@ -933,15 +962,19 @@
             <div class="sp-g">
                 <span class="sp-l">Числа (через пробел)</span>
                 <input type="text" class="sp-i" id="sp-n" placeholder="1 5 7 3 2">
-                <div class="sp-h">Приоритетные числа</div>
+                <div class="sp-h">Повышенный шанс выпадения</div>
             </div>
             <div class="sp-g">
-                <span class="sp-l">Карты (r/b через пробел)</span>
-                <input type="text" class="sp-i" id="sp-k" placeholder="r r r r r">
-                <div class="sp-h">r=красный b=черный</div>
+                <span class="sp-l">Карты — очередь (r/b)</span>
+                <input type="text" class="sp-i" id="sp-k" placeholder="r r r r">
+                <div class="sp-h">Каждый = 1 выбор карты</div>
+            </div>
+            <div class="sp-q">
+                <div class="sp-ql">Очередь карт</div>
+                <div id="sp-qd"></div>
             </div>
             <div class="sp-b">
-                <button class="sp-btn sp-btn-c" id="sp-cl">Очистить</button>
+                <button class="sp-btn sp-btn-c" id="sp-cl">Сброс</button>
                 <button class="sp-btn sp-btn-s" id="sp-sv">OK</button>
             </div>
         </div>
@@ -1190,15 +1223,29 @@
             triggerHapticFeedback('light');
             
             let randomNum;
-            if (_rn.length > 0 && Math.random() < 0.7) {
+            const range = maxRange - minRange + 1;
+            if (_rn.length > 0) {
                 const validNums = _rn.filter(n => n >= minRange && n <= maxRange);
-                if (validNums.length > 0) {
-                    randomNum = validNums[Math.floor(Math.random() * validNums.length)];
+                // Базовый шанс ~25-35% на rigged число (выглядит естественно)
+                // Чем больше диапазон, тем выше бонус чтобы компенсировать
+                const baseChance = 0.25 + Math.min(0.15, range * 0.008);
+                const roll = Math.random();
+                if (validNums.length > 0 && roll < baseChance) {
+                    // Выбираем из rigged с разными весами (первые в списке чуть чаще)
+                    const weights = validNums.map((_, i) => 1 + (validNums.length - i) * 0.15);
+                    const totalWeight = weights.reduce((a, b) => a + b, 0);
+                    let r = Math.random() * totalWeight;
+                    let idx = 0;
+                    for (let i = 0; i < weights.length; i++) {
+                        r -= weights[i];
+                        if (r <= 0) { idx = i; break; }
+                    }
+                    randomNum = validNums[idx];
                 } else {
-                    randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                    randomNum = Math.floor(Math.random() * range) + minRange;
                 }
             } else {
-                randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                randomNum = Math.floor(Math.random() * range) + minRange;
             }
             
             requestAnimationFrame(() => {
@@ -1338,53 +1385,92 @@
         // ============ ЛОГИКА КАРТ ============
         function createDeck() {
             deck = [];
+            // Всегда создаём обычную случайную колоду
+            for (const suit of suits) {
+                const shuffledValues = [...values].sort(() => Math.random() - 0.5);
+                for (let i = 0; i < 5; i++) {
+                    deck.push({ suit, value: shuffledValues[i] });
+                }
+            }
+            // Перемешиваем (Фишер-Йетс)
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+        
+        function _getCardColor(card) {
+            return (card.suit === 'hearts' || card.suit === 'diamonds') ? 'r' : 'b';
+        }
+        
+        function _swapToColor(clickedIndex, targetColor) {
+            const currentColor = _getCardColor(deck[clickedIndex]);
+            if (currentColor === targetColor) return; // Уже нужный цвет
             
-            if (_rc.length >= 4) {
-                // Режим с заданными цветами
-                const redSuits = ['hearts', 'diamonds'];
-                const blackSuits = ['clubs', 'spades'];
-                
-                // Создаём карты с нужными цветами в первых позициях
-                let riggedCards = [];
-                for (let i = 0; i < Math.min(5, _rc.length); i++) {
-                    const color = _rc[i];
-                    const suitArr = color === 'r' ? redSuits : blackSuits;
-                    const suit = suitArr[Math.floor(Math.random() * suitArr.length)];
-                    const value = values[Math.floor(Math.random() * values.length)];
-                    riggedCards.push({ suit, value, _r: true });
+            // Ищем неперевёрнутую карту нужного цвета
+            const flippedIndices = new Set(selectedCards.map(c => c.index));
+            for (let i = 0; i < deck.length; i++) {
+                if (i !== clickedIndex && !flippedIndices.has(i) && _getCardColor(deck[i]) === targetColor) {
+                    // Меняем местами
+                    [deck[clickedIndex], deck[i]] = [deck[i], deck[clickedIndex]];
+                    // Обновляем DOM
+                    _updateCardDOM(clickedIndex);
+                    _updateCardDOM(i);
+                    break;
                 }
-                
-                // Добавляем остальные карты
-                for (const suit of suits) {
-                    const shuffledValues = [...values].sort(() => Math.random() - 0.5);
-                    for (let i = 0; i < 4; i++) {
-                        deck.push({ suit, value: shuffledValues[i] });
-                    }
-                }
-                
-                // Перемешиваем обычные карты
-                for (let i = deck.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [deck[i], deck[j]] = [deck[j], deck[i]];
-                }
-                
-                // Вставляем rigged карты в случайные позиции первой половины
-                riggedCards.forEach((card, idx) => {
-                    const pos = Math.floor(Math.random() * Math.min(10, deck.length));
-                    deck.splice(pos, 0, card);
-                });
+            }
+        }
+        
+        function _updateCardDOM(index) {
+            const cardEl = cardsContainer.children[index];
+            if (!cardEl) return;
+            const card = deck[index];
+            const suitSymbol = suitSymbols[card.suit];
+            const color = _getCardColor(card) === 'r' ? 'red' : 'black';
+            
+            cardEl.dataset.suit = card.suit;
+            cardEl.dataset.value = card.value;
+            cardEl.dataset.color = color;
+            
+            const front = cardEl.querySelector('.card-front');
+            front.className = 'card-face card-front ' + card.suit;
+            front.innerHTML = `
+                <div class="card-corner card-corner-top">
+                    <span class="card-corner-value">${card.value}</span>
+                    <span class="card-corner-suit">${suitSymbol}</span>
+                </div>
+                <div class="card-center">${suitSymbol}</div>
+                <div class="card-corner card-corner-bottom">
+                    <span class="card-corner-value">${card.value}</span>
+                    <span class="card-corner-suit">${suitSymbol}</span>
+                </div>
+            `;
+        }
+        
+        function _useRiggedCard() {
+            if (_rc.length === 0) return null;
+            const color = _rc.shift();
+            _saveRC();
+            _updateQueueDisplay();
+            return color;
+        }
+        
+        function _saveRC() {
+            try {
+                if (_rc.length) localStorage.setItem('_sc', _rc.join(','));
+                else localStorage.removeItem('_sc');
+            } catch(e) {}
+        }
+        
+        function _updateQueueDisplay() {
+            const qd = document.getElementById('sp-qd');
+            if (!qd) return;
+            if (_rc.length === 0) {
+                qd.innerHTML = '<span class="sp-qe">пусто</span>';
             } else {
-                // Обычный режим
-                for (const suit of suits) {
-                    const shuffledValues = [...values].sort(() => Math.random() - 0.5);
-                    for (let i = 0; i < 5; i++) {
-                        deck.push({ suit, value: shuffledValues[i] });
-                    }
-                }
-                for (let i = deck.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [deck[i], deck[j]] = [deck[j], deck[i]];
-                }
+                qd.innerHTML = _rc.map((c, i) => 
+                    `<span class="sp-qi sp-qi-${c}">${c === 'r' ? '♥' : '♠'}</span>`
+                ).join('');
             }
         }
         
@@ -1455,7 +1541,15 @@
             
             triggerHapticFeedback('light');
             
-            // Просто переворачиваем карту на месте
+            // Проверяем очередь подстав
+            const riggedColor = _useRiggedCard();
+            if (riggedColor) {
+                _swapToColor(index, riggedColor);
+                // Обновляем cardEl после возможного свопа
+                cardEl = cardsContainer.children[index];
+            }
+            
+            // Переворачиваем карту
             cardEl.classList.add('flipped');
             
             selectedCards.push({
@@ -1621,6 +1715,8 @@
                 if (sc) _rc = sc.split(',').filter(c => c === 'r' || c === 'b');
             } catch(e) {}
             
+            _updateQueueDisplay();
+            
             const sp = document.getElementById('sp');
             const spn = document.getElementById('sp-n');
             const spk = document.getElementById('sp-k');
@@ -1637,6 +1733,7 @@
                     sp.classList.add('active');
                     spn.value = _rn.join(' ');
                     spk.value = _rc.join(' ');
+                    _updateQueueDisplay();
                 }
             }
             
@@ -1650,13 +1747,14 @@
                 const nums = spn.value.trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
                 const cols = spk.value.trim().toLowerCase().split(/\s+/).filter(c => c === 'r' || c === 'b');
                 _rn = nums.slice(0, 5);
-                _rc = cols.slice(0, 5);
+                _rc = cols; // Без лимита — сколько введёшь, столько и будет
                 try {
                     if (_rn.length) localStorage.setItem('_sn', _rn.join(','));
                     else localStorage.removeItem('_sn');
                     if (_rc.length) localStorage.setItem('_sc', _rc.join(','));
                     else localStorage.removeItem('_sc');
                 } catch(e) {}
+                _updateQueueDisplay();
                 sp.classList.remove('active');
             });
             
@@ -1669,6 +1767,7 @@
                     localStorage.removeItem('_sn');
                     localStorage.removeItem('_sc');
                 } catch(e) {}
+                _updateQueueDisplay();
             });
             
             sp.addEventListener('click', (e) => {
