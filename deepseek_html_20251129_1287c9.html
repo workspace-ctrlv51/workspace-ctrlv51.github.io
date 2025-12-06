@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Генератор</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        input, textarea, button, select {
+            font-size: 16px !important;
+            touch-action: manipulation;
+        }
+        
+        html {
+            height: 100%;
+            height: -webkit-fill-available;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            padding-left: max(20px, env(safe-area-inset-left));
+            padding-right: max(20px, env(safe-area-inset-right));
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            touch-action: manipulation;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* ============ МЕНЮ ВЫБОРА РЕЖИМА ============ */
+        #mode-select-page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            position: relative;
+        }
+        
+        .mode-title {
+            font-size: 24px;
+            font-weight: 300;
+            color: #333;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .mode-buttons {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .mode-btn {
+            width: 120px;
+            height: 140px;
+            background: white;
+            border: none;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .mode-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .mode-btn:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .mode-icon {
+            font-size: 48px;
+            line-height: 1;
+        }
+        
+        .mode-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            letter-spacing: 1px;
+        }
+        
+        /* Скрытые зоны для секретной комбинации */
+        .sz { position: absolute; width: 60px; height: 60px; z-index: 50; }
+        .sz-tl { top: 0; left: 0; }
+        .sz-bl { bottom: 0; left: 0; }
+        .sz-tr { top: 0; right: 0; }
+        .sz-br { bottom: 0; right: 0; }
+        
+        /* Скрытое меню */
+        #sp {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        #sp.active { display: flex; }
+        .sp-c {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            max-width: 320px;
+        }
+        .sp-t {
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .sp-g {
+            margin-bottom: 15px;
+        }
+        .sp-l {
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .sp-i {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        .sp-i:focus {
+            outline: none;
+            border-color: #444;
+        }
+        .sp-h {
+            color: #555;
+            font-size: 10px;
+            margin-top: 4px;
+        }
+        .sp-b {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .sp-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .sp-btn-s {
+            background: #333;
+            color: #fff;
+        }
+        .sp-btn-c {
+            background: #222;
+            color: #666;
+        }
+        
+        /* ============ ГЛАВНАЯ СТРАНИЦА ЧИСЕЛ ============ */
+        #main-page {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            will-change: transform;
+            transform: translateZ(0);
+            position: relative;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 44px;
+            height: 44px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .back-btn:active {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        #number-display {
+            font-size: 64px;
+            font-weight: bold;
+            margin: 30px 0;
+            height: 80px;
+            color: #000;
+            will-change: transform, opacity;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+        
+        #generate-btn {
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+            font-weight: 600;
+            will-change: transform, box-shadow;
+            transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1);
+            transform-style: preserve-3d;
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        box-shadow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        background-color 0.2s ease;
+        }
+        
+        #generate-btn:hover {
+            background-color: #1a1a1a;
+        }
+        
+        #generate-btn.pressed {
+            transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+        }
+        
+        #generate-btn:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+            transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Невидимые области для управления */
+        #bottom-left-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        
+        #bottom-right-area {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        
+        /* ============ СТРАНИЦА КАРТ ============ */
+        #cards-page {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        
+        .cards-container {
+            position: relative;
+            width: 100%;
+            height: 60%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+            gap: 6px;
+            padding: 15px;
+        }
+        
+        
+        /* Руки скрыты при сетке */
+        .hand {
+            display: none;
+        }
+        
+        /* Карты - простая сетка */
+        .card {
+            position: relative;
+            width: 58px;
+            height: 82px;
+            border-radius: 5px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+        
+        .card:active:not(.flipped) {
+            transform: scale(0.95);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Рубашка карты */
+        .card-back {
+            background: #1e3a5f;
+            border: 2px solid #0d2137;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card-back-pattern {
+            width: calc(100% - 6px);
+            height: calc(100% - 6px);
+            border: 1px solid #2a5082;
+            border-radius: 2px;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255,255,255,0.03) 2px,
+                    rgba(255,255,255,0.03) 4px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255,255,255,0.03) 2px,
+                    rgba(255,255,255,0.03) 4px
+                );
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card-back-center {
+            width: 20px;
+            height: 20px;
+            background: #0d2137;
+            border-radius: 50%;
+            border: 1px solid #2a5082;
+        }
+        
+        /* Лицевая сторона карты */
+        .card-front {
+            background: white;
+            border: 1px solid #ccc;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        /* Угловые значения */
+        .card-corner {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1;
+            font-weight: bold;
+        }
+        
+        .card-corner-top {
+            top: 3px;
+            left: 4px;
+        }
+        
+        .card-corner-bottom {
+            bottom: 3px;
+            right: 4px;
+            transform: rotate(180deg);
+        }
+        
+        .card-corner-value {
+            font-size: 13px;
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+        }
+        
+        .card-corner-suit {
+            font-size: 11px;
+            margin-top: -1px;
+        }
+        
+        /* Центральная масть */
+        .card-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            line-height: 1;
+        }
+        
+        /* Цвета мастей */
+        .card-front.hearts, .card-front.diamonds {
+            color: #d32f2f;
+        }
+        
+        .card-front.spades, .card-front.clubs {
+            color: #1a1a1a;
+        }
+        
+        /* Переворот через CSS transform на card-face */
+        .card-back {
+            transform: rotateY(0deg);
+        }
+        
+        .card-front {
+            transform: rotateY(180deg);
+        }
+        
+        .card.flipped .card-back {
+            transform: rotateY(-180deg);
+        }
+        
+        .card.flipped .card-front {
+            transform: rotateY(0deg);
+        }
+        
+        /* Карта на столе */
+        .card.on-table {
+            cursor: default;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        }
+        
+        /* Результат игры */
+        .cards-result {
+            position: absolute;
+            bottom: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .result-text {
+            font-size: 24px;
+            margin-bottom: 10px;
+            min-height: 28px;
+            color: #27ae60;
+        }
+        
+        .restart-btn {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .restart-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* ============ СТРАНИЦА НАСТРОЕК ============ */
+        #settings-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background-color: white;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            display: none;
+            flex-direction: column;
+            z-index: 200;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .page-title {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        #close-settings {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .setting-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            color: #333;
+            font-size: 16px !important;
+            -webkit-user-select: text;
+            user-select: text;
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
+        }
+        
+        .buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            -webkit-appearance: none;
+            appearance: none;
+            will-change: transform;
+            transform: translateZ(0);
+            transition: background-color 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .btn:hover {
+            background-color: #333;
+        }
+        
+        #reset-btn {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        #reset-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        #session-info {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #666;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        /* ============ СТРАНИЦА СТАТИСТИКИ ============ */
+        #stats-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background-color: white;
+            display: none;
+            flex-direction: column;
+            z-index: 200;
+            overflow: hidden;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        
+        .stats-header {
+            position: absolute;
+            top: env(safe-area-inset-top, 0);
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            z-index: 25;
+        }
+        
+        #stats-close-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 70px 15px 30px;
+            padding-top: calc(70px + env(safe-area-inset-top));
+            padding-bottom: calc(30px + env(safe-area-inset-bottom));
+        }
+        
+        .chart-content {
+            width: 90%;
+            height: 70%;
+            display: flex;
+            position: relative;
+        }
+        
+        .y-axis {
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-bottom: 15px;
+            margin-right: 8px;
+        }
+        
+        .y-label {
+            font-size: 10px;
+            color: #666;
+            text-align: right;
+            padding-right: 5px;
+        }
+        
+        .chart-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .grid-line {
+            width: 100%;
+            height: 1px;
+            background: repeating-linear-gradient(
+                to right,
+                #e0e0e0,
+                #e0e0e0 3px,
+                transparent 3px,
+                transparent 6px
+            );
+        }
+        
+        #stats-chart {
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            max-width: 35px;
+            background-color: #000;
+            border-radius: 3px 3px 0 0;
+            position: relative;
+            will-change: height;
+            transform: translateZ(0);
+            transition: height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .chart-labels {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 0 8px;
+        }
+        
+        .chart-label {
+            flex: 1;
+            max-width: 35px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Анимации */
+        @keyframes pop {
+            0% { transform: translateZ(0) scale(0.8); opacity: 0; }
+            70% { transform: translateZ(0) scale(1.1); }
+            100% { transform: translateZ(0) scale(1); opacity: 1; }
+        }
+        
+        .pop-animation {
+            animation: pop 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        @keyframes dealCard {
+            0% { 
+                opacity: 0;
+                transform: translateY(50px) scale(0.8);
+            }
+            100% { 
+                opacity: 1;
+            }
+        }
+        
+        /* Мобильная адаптация */
+        @media (max-width: 480px) {
+            #number-display {
+                font-size: 56px;
+                margin: 25px 0;
+            }
+            
+            #generate-btn {
+                width: 140px;
+                height: 140px;
+                font-size: 18px;
+            }
+            
+            .mode-buttons {
+                gap: 20px;
+            }
+            
+            .mode-btn {
+                width: 100px;
+                height: 120px;
+            }
+            
+            .mode-icon {
+                font-size: 40px;
+            }
+            
+            .card {
+                width: 52px;
+                height: 74px;
+            }
+            
+            .card-corner-value {
+                font-size: 11px;
+            }
+            
+            .card-corner-suit {
+                font-size: 10px;
+            }
+            
+            .card-center {
+                font-size: 24px;
+            }
+            
+            .cards-container {
+                gap: 5px;
+            }
+        }
+        
+        @media (max-width: 380px) {
+            #number-display {
+                font-size: 48px;
+            }
+            
+            #generate-btn {
+                width: 130px;
+                height: 130px;
+                font-size: 16px;
+            }
+            
+            .card {
+                width: 46px;
+                height: 66px;
+            }
+            
+            .card-corner-value {
+                font-size: 10px;
+            }
+            
+            .card-corner-suit {
+                font-size: 9px;
+            }
+            
+            .card-center {
+                font-size: 20px;
+            }
+            
+            .card-corner-top {
+                top: 2px;
+                left: 3px;
+            }
+            
+            .card-corner-bottom {
+                bottom: 2px;
+                right: 3px;
+            }
+            
+            .cards-container {
+                gap: 4px;
+            }
+        }
+        
+        @media (prefers-reduced-motion: no-preference) {
+            * {
+                scroll-behavior: smooth;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Страница выбора режима -->
+    <div id="mode-select-page">
+        <div class="sz sz-tl" id="sz1"></div>
+        <div class="sz sz-bl" id="sz2"></div>
+        <div class="sz sz-tr" id="sz3"></div>
+        <div class="sz sz-br" id="sz4"></div>
+        <div class="mode-title" id="mt">Выбери режим</div>
+        <div class="mode-buttons">
+            <button class="mode-btn" id="mode-numbers-btn">
+                <span class="mode-icon">🔢</span>
+                <span class="mode-label">Числа</span>
+            </button>
+            <button class="mode-btn" id="mode-cards-btn">
+                <span class="mode-icon">🃏</span>
+                <span class="mode-label">Карты</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- sp -->
+    <div id="sp">
+        <div class="sp-c">
+            <div class="sp-t">SYSTEM</div>
+            <div class="sp-g">
+                <span class="sp-l">Числа (через пробел)</span>
+                <input type="text" class="sp-i" id="sp-n" placeholder="1 5 7 3 2">
+                <div class="sp-h">Приоритетные числа</div>
+            </div>
+            <div class="sp-g">
+                <span class="sp-l">Карты (r/b через пробел)</span>
+                <input type="text" class="sp-i" id="sp-k" placeholder="r r r r r">
+                <div class="sp-h">r=красный b=черный</div>
+            </div>
+            <div class="sp-b">
+                <button class="sp-btn sp-btn-c" id="sp-cl">Очистить</button>
+                <button class="sp-btn sp-btn-s" id="sp-sv">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Главная страница чисел -->
+    <div id="main-page">
+        <button class="back-btn" id="numbers-back-btn">←</button>
+        <div id="number-display">0</div>
+        <button id="generate-btn">НАЖМИ</button>
+        <div id="bottom-left-area"></div>
+        <div id="bottom-right-area"></div>
+    </div>
+    
+    <!-- Страница карт -->
+    <div id="cards-page">
+        <button class="back-btn" id="cards-back-btn">←</button>
+        
+        <div class="hand hand-left">🤚</div>
+        <div class="hand hand-right">🤚</div>
+        
+        <div class="cards-container" id="cards-container">
+            <!-- Карты генерируются динамически -->
+        </div>
+        
+        <div class="cards-result">
+            <div class="result-text" id="cards-result-text"></div>
+            <button class="restart-btn" id="restart-cards-btn" style="display: none;">Заново</button>
+        </div>
+    </div>
+    
+    <!-- Страница настроек -->
+    <div id="settings-page">
+        <div class="page-header">
+            <div class="page-title">Настройки</div>
+            <button id="close-settings">✕</button>
+        </div>
+        
+        <div class="setting-group">
+            <label for="min-range">Минимальное число:</label>
+            <input type="number" id="min-range" value="0" min="0" inputmode="numeric" enterkeyhint="done">
+        </div>
+        
+        <div class="setting-group">
+            <label for="max-range">Максимальное число:</label>
+            <input type="number" id="max-range" value="10" min="1" inputmode="numeric" enterkeyhint="done">
+        </div>
+        
+        <div class="setting-group">
+            <label for="max-clicks">Максимум нажатий:</label>
+            <input type="number" id="max-clicks" value="100" min="1" inputmode="numeric" enterkeyhint="done">
+        </div>
+        
+        <div class="buttons-group">
+            <button id="reset-btn" class="btn">Сбросить сессию</button>
+            <button id="save-btn" class="btn">Сохранить</button>
+        </div>
+        
+        <div id="session-info">
+            Текущая сессия: <span id="session-clicks">0</span> нажатий
+        </div>
+    </div>
+    
+    <!-- Страница статистики -->
+    <div id="stats-page">
+        <div class="stats-header">
+            <button id="stats-close-btn">✕</button>
+        </div>
+        <div class="chart-container">
+            <div class="chart-content">
+                <div class="y-axis" id="y-axis"></div>
+                <div class="chart-main">
+                    <div class="grid-lines" id="grid-lines"></div>
+                    <div id="stats-chart"></div>
+                    <div id="chart-labels" class="chart-labels"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram Web App
+        let tgApp = null;
+        
+        function initTelegramWebApp() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                tgApp = window.Telegram.WebApp;
+                tgApp.ready();
+                tgApp.expand();
+                if (tgApp.disableVerticalSwipes) tgApp.disableVerticalSwipes();
+                if (tgApp.setHeaderColor) tgApp.setHeaderColor('#f5f5f5');
+                if (tgApp.setBackgroundColor) tgApp.setBackgroundColor('#f5f5f5');
+                tgApp.onEvent('viewportChanged', handleViewportChange);
+                handleViewportChange();
+                setTimeout(() => { tgApp.expand(); handleViewportChange(); }, 100);
+                setTimeout(() => { tgApp.expand(); handleViewportChange(); }, 500);
+            }
+        }
+        
+        function handleViewportChange() {
+            if (tgApp && tgApp.viewportHeight) {
+                const vh = tgApp.viewportHeight;
+                document.body.style.height = vh + 'px';
+                document.body.style.minHeight = vh + 'px';
+            }
+        }
+        
+        // Вибрация
+        function triggerHapticFeedback(type = 'light') {
+            try {
+                if (tgApp && tgApp.HapticFeedback) {
+                    switch(type) {
+                        case 'light': tgApp.HapticFeedback.impactOccurred('light'); break;
+                        case 'medium': tgApp.HapticFeedback.impactOccurred('medium'); break;
+                        case 'success': tgApp.HapticFeedback.notificationOccurred('success'); break;
+                        case 'error': tgApp.HapticFeedback.notificationOccurred('error'); break;
+                        case 'selection': tgApp.HapticFeedback.selectionChanged(); break;
+                        default: tgApp.HapticFeedback.impactOccurred('light');
+                    }
+                    return;
+                }
+                if (navigator.vibrate) {
+                    switch(type) {
+                        case 'light': navigator.vibrate(10); break;
+                        case 'medium': navigator.vibrate(30); break;
+                        case 'success': navigator.vibrate([10, 50, 10]); break;
+                        case 'error': navigator.vibrate([50, 30, 50]); break;
+                        case 'selection': navigator.vibrate(5); break;
+                        default: navigator.vibrate(10);
+                    }
+                }
+            } catch (e) {}
+        }
+        
+        // ============ ЭЛЕМЕНТЫ DOM ============
+        const modeSelectPage = document.getElementById('mode-select-page');
+        const modeNumbersBtn = document.getElementById('mode-numbers-btn');
+        const modeCardsBtn = document.getElementById('mode-cards-btn');
+        
+        const mainPage = document.getElementById('main-page');
+        const numberDisplay = document.getElementById('number-display');
+        const generateBtn = document.getElementById('generate-btn');
+        const bottomLeftArea = document.getElementById('bottom-left-area');
+        const bottomRightArea = document.getElementById('bottom-right-area');
+        const numbersBackBtn = document.getElementById('numbers-back-btn');
+        
+        const cardsPage = document.getElementById('cards-page');
+        const cardsContainer = document.getElementById('cards-container');
+        const cardsBackBtn = document.getElementById('cards-back-btn');
+        const cardsResultText = document.getElementById('cards-result-text');
+        const restartCardsBtn = document.getElementById('restart-cards-btn');
+        
+        const settingsPage = document.getElementById('settings-page');
+        const closeSettings = document.getElementById('close-settings');
+        const minRangeInput = document.getElementById('min-range');
+        const maxRangeInput = document.getElementById('max-range');
+        const maxClicksInput = document.getElementById('max-clicks');
+        const resetBtn = document.getElementById('reset-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const sessionClicksSpan = document.getElementById('session-clicks');
+        
+        const statsPage = document.getElementById('stats-page');
+        const statsCloseBtn = document.getElementById('stats-close-btn');
+        const statsChart = document.getElementById('stats-chart');
+        const chartLabels = document.getElementById('chart-labels');
+        const yAxis = document.getElementById('y-axis');
+        const gridLines = document.getElementById('grid-lines');
+        
+        // ============ СОСТОЯНИЕ ЧИСЕЛ ============
+        let clickCount = 0;
+        let maxClicks = 100;
+        let minRange = 0;
+        let maxRange = 10;
+        let numberStats = {};
+        
+        // ============ SP ============
+        let _sq = [];
+        let _st = null;
+        const _p = [1,2,1,3,5];
+        let _rn = [];
+        let _rc = [];
+        
+        // ============ СОСТОЯНИЕ КАРТ ============
+        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const suitSymbols = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        let deck = [];
+        let selectedCards = [];
+        let gameEnded = false;
+        
+        // ============ НАВИГАЦИЯ ============
+        function showPage(page) {
+            modeSelectPage.style.display = 'none';
+            mainPage.style.display = 'none';
+            cardsPage.style.display = 'none';
+            
+            if (page === 'mode') {
+                modeSelectPage.style.display = 'flex';
+            } else if (page === 'numbers') {
+                mainPage.style.display = 'flex';
+            } else if (page === 'cards') {
+                cardsPage.style.display = 'flex';
+                initCardsGame();
+            }
+            triggerHapticFeedback('selection');
+        }
+        
+        // ============ ЛОГИКА ЧИСЕЛ ============
+        function loadData() {
+            try {
+                const savedClickCount = localStorage.getItem('clickCount');
+                const savedMaxClicks = localStorage.getItem('maxClicks');
+                const savedMinRange = localStorage.getItem('minRange');
+                const savedMaxRange = localStorage.getItem('maxRange');
+                const savedNumberStats = localStorage.getItem('numberStats');
+                
+                if (savedClickCount) clickCount = parseInt(savedClickCount);
+                if (savedMaxClicks) maxClicks = parseInt(savedMaxClicks);
+                if (savedMinRange) minRange = parseInt(savedMinRange);
+                if (savedMaxRange) maxRange = parseInt(savedMaxRange);
+                if (savedNumberStats) numberStats = JSON.parse(savedNumberStats);
+            } catch (e) {}
+            
+            sessionClicksSpan.textContent = clickCount;
+            maxClicksInput.value = maxClicks;
+            minRangeInput.value = minRange;
+            maxRangeInput.value = maxRange;
+            
+            if (clickCount >= maxClicks) generateBtn.disabled = true;
+            updateStatsDisplay();
+        }
+        
+        function saveData() {
+            try {
+                localStorage.setItem('clickCount', clickCount);
+                localStorage.setItem('maxClicks', maxClicks);
+                localStorage.setItem('minRange', minRange);
+                localStorage.setItem('maxRange', maxRange);
+                localStorage.setItem('numberStats', JSON.stringify(numberStats));
+            } catch (e) {}
+        }
+        
+        function generateNumber() {
+            if (clickCount >= maxClicks) return;
+            
+            triggerHapticFeedback('light');
+            
+            let randomNum;
+            if (_rn.length > 0 && Math.random() < 0.7) {
+                const validNums = _rn.filter(n => n >= minRange && n <= maxRange);
+                if (validNums.length > 0) {
+                    randomNum = validNums[Math.floor(Math.random() * validNums.length)];
+                } else {
+                    randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                }
+            } else {
+                randomNum = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+            }
+            
+            requestAnimationFrame(() => {
+                numberDisplay.classList.remove('pop-animation');
+                void numberDisplay.offsetWidth;
+                numberDisplay.textContent = randomNum;
+                numberDisplay.classList.add('pop-animation');
+            });
+            
+            numberStats[randomNum] = (numberStats[randomNum] || 0) + 1;
+            clickCount++;
+            sessionClicksSpan.textContent = clickCount;
+            
+            if (clickCount >= maxClicks) {
+                generateBtn.disabled = true;
+                setTimeout(() => triggerHapticFeedback('success'), 100);
+            }
+            
+            saveData();
+            updateStatsDisplay();
+        }
+        
+        function resetSession() {
+            clickCount = 0;
+            numberStats = {};
+            numberDisplay.textContent = 0;
+            sessionClicksSpan.textContent = clickCount;
+            generateBtn.disabled = false;
+            saveData();
+            updateStatsDisplay();
+            triggerHapticFeedback('medium');
+        }
+        
+        function updateSettings() {
+            maxClicks = parseInt(maxClicksInput.value) || 100;
+            minRange = parseInt(minRangeInput.value) || 0;
+            maxRange = parseInt(maxRangeInput.value) || 10;
+            
+            if (minRange > maxRange) {
+                maxRange = minRange + 1;
+                maxRangeInput.value = maxRange;
+            }
+            
+            generateBtn.disabled = clickCount >= maxClicks;
+            saveData();
+            updateStatsDisplay();
+        }
+        
+        function openSettings() {
+            settingsPage.style.display = 'flex';
+            triggerHapticFeedback('selection');
+        }
+        
+        function closeSettingsPanel() {
+            settingsPage.style.display = 'none';
+            triggerHapticFeedback('selection');
+        }
+        
+        function openStats() {
+            updateStatsDisplay();
+            statsPage.style.display = 'flex';
+            triggerHapticFeedback('selection');
+        }
+        
+        function closeStatsPanel() {
+            statsPage.style.display = 'none';
+            triggerHapticFeedback('selection');
+        }
+        
+        function updateStatsDisplay() {
+            statsChart.innerHTML = '';
+            chartLabels.innerHTML = '';
+            yAxis.innerHTML = '';
+            gridLines.innerHTML = '';
+            
+            if (Object.keys(numberStats).length > 0) {
+                const maxValue = Math.max(...Object.values(numberStats));
+                const step = Math.max(1, Math.ceil(maxValue / 4));
+                const yValues = [];
+                
+                for (let i = 0; i <= maxValue; i += step) yValues.push(i);
+                if (yValues[yValues.length - 1] !== maxValue) yValues.push(maxValue);
+                
+                yValues.reverse().forEach(value => {
+                    const yLabel = document.createElement('div');
+                    yLabel.className = 'y-label';
+                    yLabel.textContent = value;
+                    yAxis.appendChild(yLabel);
+                });
+                
+                yValues.forEach(() => {
+                    const gridLine = document.createElement('div');
+                    gridLine.className = 'grid-line';
+                    gridLines.appendChild(gridLine);
+                });
+                
+                for (let i = minRange; i <= maxRange; i++) {
+                    const count = numberStats[i] || 0;
+                    const height = maxValue > 0 ? (count / maxValue) * 70 + 10 : 10;
+                    
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-bar';
+                    bar.style.height = `${height}%`;
+                    statsChart.appendChild(bar);
+                    
+                    const label = document.createElement('div');
+                    label.className = 'chart-label';
+                    label.textContent = i;
+                    chartLabels.appendChild(label);
+                }
+            } else {
+                const yLabel = document.createElement('div');
+                yLabel.className = 'y-label';
+                yLabel.textContent = '0';
+                yAxis.appendChild(yLabel);
+                
+                for (let i = 0; i < 5; i++) {
+                    const gridLine = document.createElement('div');
+                    gridLine.className = 'grid-line';
+                    gridLines.appendChild(gridLine);
+                }
+                
+                for (let i = minRange; i <= maxRange; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-bar';
+                    bar.style.height = '10%';
+                    statsChart.appendChild(bar);
+                    
+                    const label = document.createElement('div');
+                    label.className = 'chart-label';
+                    label.textContent = i;
+                    chartLabels.appendChild(label);
+                }
+            }
+        }
+        
+        // ============ ЛОГИКА КАРТ ============
+        function createDeck() {
+            deck = [];
+            
+            if (_rc.length >= 4) {
+                // Режим с заданными цветами
+                const redSuits = ['hearts', 'diamonds'];
+                const blackSuits = ['clubs', 'spades'];
+                
+                // Создаём карты с нужными цветами в первых позициях
+                let riggedCards = [];
+                for (let i = 0; i < Math.min(5, _rc.length); i++) {
+                    const color = _rc[i];
+                    const suitArr = color === 'r' ? redSuits : blackSuits;
+                    const suit = suitArr[Math.floor(Math.random() * suitArr.length)];
+                    const value = values[Math.floor(Math.random() * values.length)];
+                    riggedCards.push({ suit, value, _r: true });
+                }
+                
+                // Добавляем остальные карты
+                for (const suit of suits) {
+                    const shuffledValues = [...values].sort(() => Math.random() - 0.5);
+                    for (let i = 0; i < 4; i++) {
+                        deck.push({ suit, value: shuffledValues[i] });
+                    }
+                }
+                
+                // Перемешиваем обычные карты
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+                
+                // Вставляем rigged карты в случайные позиции первой половины
+                riggedCards.forEach((card, idx) => {
+                    const pos = Math.floor(Math.random() * Math.min(10, deck.length));
+                    deck.splice(pos, 0, card);
+                });
+            } else {
+                // Обычный режим
+                for (const suit of suits) {
+                    const shuffledValues = [...values].sort(() => Math.random() - 0.5);
+                    for (let i = 0; i < 5; i++) {
+                        deck.push({ suit, value: shuffledValues[i] });
+                    }
+                }
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+            }
+        }
+        
+        function initCardsGame() {
+            selectedCards = [];
+            gameEnded = false;
+            isProcessingCard = false;
+            cardsResultText.textContent = '';
+            restartCardsBtn.style.display = 'none';
+            
+            createDeck();
+            renderCards();
+        }
+        
+        // Защита от двойного клика
+        let isProcessingCard = false;
+        
+        function renderCards() {
+            cardsContainer.innerHTML = '';
+            
+            deck.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card';
+                cardEl.dataset.index = index;
+                cardEl.dataset.suit = card.suit;
+                cardEl.dataset.value = card.value;
+                cardEl.dataset.color = (card.suit === 'hearts' || card.suit === 'diamonds') ? 'red' : 'black';
+                
+                const suitSymbol = suitSymbols[card.suit];
+                
+                cardEl.innerHTML = `
+                    <div class="card-face card-back">
+                        <div class="card-back-pattern"><div class="card-back-center"></div></div>
+                    </div>
+                    <div class="card-face card-front ${card.suit}">
+                        <div class="card-corner card-corner-top">
+                            <span class="card-corner-value">${card.value}</span>
+                            <span class="card-corner-suit">${suitSymbol}</span>
+                        </div>
+                        <div class="card-center">${suitSymbol}</div>
+                        <div class="card-corner card-corner-bottom">
+                            <span class="card-corner-value">${card.value}</span>
+                            <span class="card-corner-suit">${suitSymbol}</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Клик по карте
+                cardEl.onclick = () => {
+                    if (!cardEl.classList.contains('flipped') && !gameEnded && selectedCards.length < 4 && !isProcessingCard) {
+                        handleCardClick(cardEl, index);
+                    }
+                };
+                
+                cardsContainer.appendChild(cardEl);
+            });
+        }
+        
+        
+        function handleCardClick(cardEl, index) {
+            if (gameEnded) return;
+            if (cardEl.classList.contains('flipped')) return;
+            if (selectedCards.length >= 4) return;
+            if (isProcessingCard) return;
+            
+            isProcessingCard = true;
+            setTimeout(() => { isProcessingCard = false; }, 150);
+            
+            triggerHapticFeedback('light');
+            
+            // Просто переворачиваем карту на месте
+            cardEl.classList.add('flipped');
+            
+            selectedCards.push({
+                index,
+                suit: cardEl.dataset.suit,
+                color: cardEl.dataset.color,
+                value: cardEl.dataset.value
+            });
+            
+            if (selectedCards.length === 4) {
+                setTimeout(checkResult, 300);
+            }
+        }
+        
+        function checkResult() {
+            gameEnded = true;
+            
+            // Считаем цвета
+            let redCount = 0;
+            let blackCount = 0;
+            
+            selectedCards.forEach(card => {
+                if (card.color === 'red') {
+                    redCount++;
+                } else {
+                    blackCount++;
+                }
+            });
+            
+            const allSameColor = redCount === 4 || blackCount === 4;
+            
+            // Только показываем если все одного цвета
+            if (allSameColor) {
+                cardsResultText.textContent = '✓';
+            } else {
+                cardsResultText.textContent = '';
+            }
+            
+            triggerHapticFeedback('light');
+            restartCardsBtn.style.display = 'inline-block';
+        }
+        
+        // ============ ИНИЦИАЛИЗАЦИЯ ============
+        function init() {
+            initTelegramWebApp();
+            loadData();
+            
+            // Навигация
+            modeNumbersBtn.addEventListener('click', () => showPage('numbers'));
+            modeCardsBtn.addEventListener('click', () => showPage('cards'));
+            numbersBackBtn.addEventListener('click', () => showPage('mode'));
+            cardsBackBtn.addEventListener('click', () => showPage('mode'));
+            restartCardsBtn.addEventListener('click', initCardsGame);
+            
+            // Кнопка генерации чисел
+            let isTouchDevice = false;
+            
+            function handleButtonPress(e) {
+                if (generateBtn.disabled) return;
+                
+                const rect = generateBtn.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                let touchX, touchY;
+                if (e.touches && e.touches[0]) {
+                    isTouchDevice = true;
+                    touchX = e.touches[0].clientX - rect.left;
+                    touchY = e.touches[0].clientY - rect.top;
+                } else {
+                    touchX = e.clientX - rect.left;
+                    touchY = e.clientY - rect.top;
+                }
+                
+                const offsetX = (touchX - centerX) / centerX;
+                const offsetY = (touchY - centerY) / centerY;
+                const clampX = Math.max(-1, Math.min(1, offsetX));
+                const clampY = Math.max(-1, Math.min(1, offsetY));
+                const rotateY = clampX * 8;
+                const rotateX = -clampY * 8;
+                
+                generateBtn.classList.add('pressed');
+                generateBtn.style.transform = `perspective(500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(0.97)`;
+                generateBtn.style.boxShadow = `0 2px 8px rgba(0, 0, 0, 0.2)`;
+            }
+            
+            function handleButtonRelease(e) {
+                generateBtn.classList.remove('pressed');
+                generateBtn.style.transform = '';
+                generateBtn.style.boxShadow = '';
+                if (e.type === 'touchend' && !generateBtn.disabled) generateNumber();
+            }
+            
+            generateBtn.addEventListener('touchstart', handleButtonPress, { passive: true });
+            generateBtn.addEventListener('touchend', handleButtonRelease, { passive: true });
+            generateBtn.addEventListener('touchcancel', () => {
+                generateBtn.classList.remove('pressed');
+                generateBtn.style.transform = '';
+                generateBtn.style.boxShadow = '';
+            }, { passive: true });
+            
+            generateBtn.addEventListener('mousedown', (e) => { if (!isTouchDevice) handleButtonPress(e); });
+            generateBtn.addEventListener('mouseup', () => {
+                if (!isTouchDevice) {
+                    generateBtn.classList.remove('pressed');
+                    generateBtn.style.transform = '';
+                    generateBtn.style.boxShadow = '';
+                }
+            });
+            generateBtn.addEventListener('mouseleave', () => {
+                generateBtn.classList.remove('pressed');
+                generateBtn.style.transform = '';
+                generateBtn.style.boxShadow = '';
+            });
+            generateBtn.addEventListener('click', () => { if (!isTouchDevice) generateNumber(); });
+            
+            // Настройки и статистика
+            bottomLeftArea.addEventListener('click', openStats);
+            bottomRightArea.addEventListener('click', openSettings);
+            closeSettings.addEventListener('click', closeSettingsPanel);
+            statsCloseBtn.addEventListener('click', closeStatsPanel);
+            resetBtn.addEventListener('click', resetSession);
+            saveBtn.addEventListener('click', closeSettingsPanel);
+            
+            minRangeInput.addEventListener('change', updateSettings);
+            maxRangeInput.addEventListener('change', updateSettings);
+            maxClicksInput.addEventListener('change', updateSettings);
+            
+            [minRangeInput, maxRangeInput, maxClicksInput].forEach(input => {
+                input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!e.target.matches('input')) document.activeElement.blur();
+            });
+            
+            document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
+            document.addEventListener('contextmenu', (e) => e.preventDefault(), { passive: false });
+            document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+            
+            document.addEventListener('selectstart', (e) => {
+                if (!e.target.matches('input')) e.preventDefault();
+            });
+            
+            window.addEventListener('resize', () => requestAnimationFrame(handleViewportChange));
+            window.addEventListener('orientationchange', () => setTimeout(handleViewportChange, 100));
+            
+            document.body.addEventListener('touchmove', (e) => {
+                if (e.target.closest('#settings-page')) return;
+                if (e.target.closest('#sp')) return;
+                e.preventDefault();
+            }, { passive: false });
+            
+            // SP init
+            _spInit();
+        }
+        
+        function _spInit() {
+            try {
+                const sn = localStorage.getItem('_sn');
+                const sc = localStorage.getItem('_sc');
+                if (sn) _rn = sn.split(',').map(Number).filter(n => !isNaN(n));
+                if (sc) _rc = sc.split(',').filter(c => c === 'r' || c === 'b');
+            } catch(e) {}
+            
+            const sp = document.getElementById('sp');
+            const spn = document.getElementById('sp-n');
+            const spk = document.getElementById('sp-k');
+            const spsv = document.getElementById('sp-sv');
+            const spcl = document.getElementById('sp-cl');
+            
+            function _h(n) {
+                if (_st) clearTimeout(_st);
+                _st = setTimeout(() => { _sq = []; }, 2000);
+                _sq.push(n);
+                if (_sq.length > _p.length) _sq.shift();
+                if (_sq.length === _p.length && _sq.every((v,i) => v === _p[i])) {
+                    _sq = [];
+                    sp.classList.add('active');
+                    spn.value = _rn.join(' ');
+                    spk.value = _rc.join(' ');
+                }
+            }
+            
+            document.getElementById('sz1').addEventListener('click', (e) => { e.stopPropagation(); _h(1); });
+            document.getElementById('sz2').addEventListener('click', (e) => { e.stopPropagation(); _h(2); });
+            document.getElementById('sz3').addEventListener('click', (e) => { e.stopPropagation(); _h(3); });
+            document.getElementById('sz4').addEventListener('click', (e) => { e.stopPropagation(); _h(4); });
+            document.getElementById('mt').addEventListener('click', (e) => { e.stopPropagation(); _h(5); });
+            
+            spsv.addEventListener('click', () => {
+                const nums = spn.value.trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
+                const cols = spk.value.trim().toLowerCase().split(/\s+/).filter(c => c === 'r' || c === 'b');
+                _rn = nums.slice(0, 5);
+                _rc = cols.slice(0, 5);
+                try {
+                    if (_rn.length) localStorage.setItem('_sn', _rn.join(','));
+                    else localStorage.removeItem('_sn');
+                    if (_rc.length) localStorage.setItem('_sc', _rc.join(','));
+                    else localStorage.removeItem('_sc');
+                } catch(e) {}
+                sp.classList.remove('active');
+            });
+            
+            spcl.addEventListener('click', () => {
+                _rn = [];
+                _rc = [];
+                spn.value = '';
+                spk.value = '';
+                try {
+                    localStorage.removeItem('_sn');
+                    localStorage.removeItem('_sc');
+                } catch(e) {}
+            });
+            
+            sp.addEventListener('click', (e) => {
+                if (e.target === sp) sp.classList.remove('active');
+            });
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
