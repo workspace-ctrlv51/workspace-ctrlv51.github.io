@@ -200,35 +200,6 @@
             background: #222;
             color: #666;
         }
-        .sp-q {
-            margin-top: 15px;
-            padding: 10px;
-            background: #222;
-            border-radius: 8px;
-            min-height: 36px;
-        }
-        .sp-ql {
-            color: #555;
-            font-size: 9px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .sp-qi {
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            line-height: 22px;
-            text-align: center;
-            border-radius: 4px;
-            font-size: 11px;
-            margin: 2px;
-            font-weight: bold;
-        }
-        .sp-qi-r { background: #8b2635; color: #ffcdd2; }
-        .sp-qi-b { background: #1a237e; color: #c5cae9; }
-        .sp-qi-u { opacity: 0.3; text-decoration: line-through; }
-        .sp-qe { color: #444; font-size: 10px; font-style: italic; }
         
         /* ============ ГЛАВНАЯ СТРАНИЦА ЧИСЕЛ ============ */
         #main-page {
@@ -969,10 +940,6 @@
                 <input type="text" class="sp-i" id="sp-k" placeholder="r r r r">
                 <div class="sp-h">Каждый = 1 выбор карты</div>
             </div>
-            <div class="sp-q">
-                <div class="sp-ql">Очередь карт</div>
-                <div id="sp-qd"></div>
-            </div>
             <div class="sp-b">
                 <button class="sp-btn sp-btn-c" id="sp-cl">Сброс</button>
                 <button class="sp-btn sp-btn-s" id="sp-sv">OK</button>
@@ -1224,28 +1191,20 @@
             
             let randomNum;
             const range = maxRange - minRange + 1;
-            if (_rn.length > 0) {
+            
+            // Проверяем очередь подстав
+            const riggedNum = _useRiggedNumber();
+            if (riggedNum !== null && riggedNum >= minRange && riggedNum <= maxRange) {
+                randomNum = riggedNum;
+            } else {
+                // Обычный рандом с минимальным шансом на оставшиеся числа
                 const validNums = _rn.filter(n => n >= minRange && n <= maxRange);
-                // Базовый шанс ~25-35% на rigged число (выглядит естественно)
-                // Чем больше диапазон, тем выше бонус чтобы компенсировать
-                const baseChance = 0.25 + Math.min(0.15, range * 0.008);
-                const roll = Math.random();
-                if (validNums.length > 0 && roll < baseChance) {
-                    // Выбираем из rigged с разными весами (первые в списке чуть чаще)
-                    const weights = validNums.map((_, i) => 1 + (validNums.length - i) * 0.15);
-                    const totalWeight = weights.reduce((a, b) => a + b, 0);
-                    let r = Math.random() * totalWeight;
-                    let idx = 0;
-                    for (let i = 0; i < weights.length; i++) {
-                        r -= weights[i];
-                        if (r <= 0) { idx = i; break; }
-                    }
-                    randomNum = validNums[idx];
+                if (validNums.length > 0 && Math.random() < 0.06) {
+                    // Очень маленький шанс ~6% на оставшиеся числа
+                    randomNum = validNums[Math.floor(Math.random() * validNums.length)];
                 } else {
                     randomNum = Math.floor(Math.random() * range) + minRange;
                 }
-            } else {
-                randomNum = Math.floor(Math.random() * range) + minRange;
             }
             
             requestAnimationFrame(() => {
@@ -1447,11 +1406,24 @@
             `;
         }
         
+        function _useRiggedNumber() {
+            if (_rn.length === 0) return null;
+            const num = _rn.shift();
+            _saveRN();
+            return num;
+        }
+        
+        function _saveRN() {
+            try {
+                if (_rn.length) localStorage.setItem('_sn', _rn.join(','));
+                else localStorage.removeItem('_sn');
+            } catch(e) {}
+        }
+        
         function _useRiggedCard() {
             if (_rc.length === 0) return null;
             const color = _rc.shift();
             _saveRC();
-            _updateQueueDisplay();
             return color;
         }
         
@@ -1460,18 +1432,6 @@
                 if (_rc.length) localStorage.setItem('_sc', _rc.join(','));
                 else localStorage.removeItem('_sc');
             } catch(e) {}
-        }
-        
-        function _updateQueueDisplay() {
-            const qd = document.getElementById('sp-qd');
-            if (!qd) return;
-            if (_rc.length === 0) {
-                qd.innerHTML = '<span class="sp-qe">пусто</span>';
-            } else {
-                qd.innerHTML = _rc.map((c, i) => 
-                    `<span class="sp-qi sp-qi-${c}">${c === 'r' ? '♥' : '♠'}</span>`
-                ).join('');
-            }
         }
         
         function initCardsGame() {
@@ -1708,14 +1668,13 @@
         }
         
         function _spInit() {
+            // Загружаем очереди при инициализации
             try {
                 const sn = localStorage.getItem('_sn');
                 const sc = localStorage.getItem('_sc');
                 if (sn) _rn = sn.split(',').map(Number).filter(n => !isNaN(n));
                 if (sc) _rc = sc.split(',').filter(c => c === 'r' || c === 'b');
             } catch(e) {}
-            
-            _updateQueueDisplay();
             
             const sp = document.getElementById('sp');
             const spn = document.getElementById('sp-n');
@@ -1730,10 +1689,10 @@
                 if (_sq.length > _p.length) _sq.shift();
                 if (_sq.length === _p.length && _sq.every((v,i) => v === _p[i])) {
                     _sq = [];
+                    // Показываем текущие значения очередей
                     sp.classList.add('active');
                     spn.value = _rn.join(' ');
                     spk.value = _rc.join(' ');
-                    _updateQueueDisplay();
                 }
             }
             
@@ -1746,15 +1705,10 @@
             spsv.addEventListener('click', () => {
                 const nums = spn.value.trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
                 const cols = spk.value.trim().toLowerCase().split(/\s+/).filter(c => c === 'r' || c === 'b');
-                _rn = nums.slice(0, 5);
-                _rc = cols; // Без лимита — сколько введёшь, столько и будет
-                try {
-                    if (_rn.length) localStorage.setItem('_sn', _rn.join(','));
-                    else localStorage.removeItem('_sn');
-                    if (_rc.length) localStorage.setItem('_sc', _rc.join(','));
-                    else localStorage.removeItem('_sc');
-                } catch(e) {}
-                _updateQueueDisplay();
+                _rn = nums; // Без лимита — сколько введёшь, столько и будет
+                _rc = cols;
+                _saveRN();
+                _saveRC();
                 sp.classList.remove('active');
             });
             
@@ -1763,11 +1717,8 @@
                 _rc = [];
                 spn.value = '';
                 spk.value = '';
-                try {
-                    localStorage.removeItem('_sn');
-                    localStorage.removeItem('_sc');
-                } catch(e) {}
-                _updateQueueDisplay();
+                _saveRN();
+                _saveRC();
             });
             
             sp.addEventListener('click', (e) => {
